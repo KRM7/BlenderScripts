@@ -44,8 +44,10 @@ def bevel(object, vgroup, radius):
 width = 135.5
 height = 30.0
 thickness = 3.0
+radius = 2.0
 
 base_height = 10.0
+base_radius = 5.0
 
 side_width = 7.0
 side_radius = 7.0
@@ -59,19 +61,26 @@ init()
 
 #create object
 #base
-bpy.ops.mesh.primitive_cube_add(location=(base_height/2.0, 0.0, 0.0), scale=(base_height, width, thickness))
+bpy.ops.mesh.primitive_cube_add(location=(base_height/2.0, 0.0, thickness/2.0), scale=(base_height, width, thickness))
 base = bpy.context.object
-#add modify base shape here
+#round the 2 vertical edges
+top_left = base.vertex_groups.new(name="topleft")
+top_left.add([0, 1], 1.0, "REPLACE")
+top_right = base.vertex_groups.new(name="topright")
+top_right.add([2, 3], 1.0, "REPLACE")
+bevel(base, "topleft", base_radius)
+bevel(base, "topright", base_radius)
 
-#2 sides #left side
+#add the 2 sides
+#left side
 bpy.ops.mesh.primitive_cube_add(scale=(tooth_height/2.5, side_width, thickness))
 side = bpy.context.object
 side.scale[0] = 2.5 #this is for the uneven beveling later
-bpy.ops.transform.translate(value=(base_height+tooth_height/2.0, -width/2.0+side_width/2.0, 0.0))
+bpy.ops.transform.translate(value=(base_height+tooth_height/2.0, -width/2.0+side_width/2.0, thickness/2.0))
 #bevel left edge
 l_edge = side.vertex_groups.new(name="l_edge")
-l_edge.add([4,5], 1.0, "REPLACE")
-bevel(side,"l_edge",side_radius)
+l_edge.add([4, 5], 1.0, "REPLACE")
+bevel(side, "l_edge", side_radius)
 
 union(base, side)
 
@@ -81,15 +90,26 @@ bpy.ops.transform.rotate(value=math.pi,orient_axis="X")
 union(base, side)
 bpy.data.objects.remove(side)
 
-#add teeth
-#create teeth
-bpy.ops.mesh.primitive_cube_add(scale=(tooth_height,tooth_width,thickness))
-tooth = bpy.context.object
-bpy.ops.transform.translate(value=(base_height+tooth_height/2.0,-width/2.0+side_width+tooth_spacing+tooth_width/2.0,0.0))
-#add modify tooth shape here
-for i in range(tooth_count):
-    union(base, tooth)
-    
-    bpy.context.view_layer.objects.active = tooth
-    bpy.ops.transform.translate(value=(0.0,tooth_spacing+tooth_width,0.0))
-bpy.data.objects.remove(tooth)
+#round horizontal edges
+top = base.vertex_groups.new(name="top")
+bottom = base.vertex_groups.new(name="bottom")
+for vert in base.data.vertices:
+    print(vert.co.z)
+    if (vert.co.z <= -thickness/2.0):
+        bottom.add([vert.index,], 1.0, "ADD")
+    if (vert.co.z >= thickness/2.0):
+        top.add([vert.index,], 1.0, "ADD")
+
+
+##add teeth
+##create teeth
+#bpy.ops.mesh.primitive_cube_add(scale=(tooth_height,tooth_width,thickness))
+#tooth = bpy.context.object
+#bpy.ops.transform.translate(value=(base_height+tooth_height/2.0,-width/2.0+side_width+tooth_spacing+tooth_width/2.0,thickness/2.0))
+##add modify tooth shape here
+#for i in range(tooth_count):
+#    union(base, tooth)
+#    
+#    bpy.context.view_layer.objects.active = tooth
+#    bpy.ops.transform.translate(value=(0.0,tooth_spacing+tooth_width,0.0))
+#bpy.data.objects.remove(tooth)
