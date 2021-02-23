@@ -40,17 +40,19 @@ def bevel(object, vgroup, radius):
     bpy.context.view_layer.objects.active = object
     bpy.ops.object.modifier_apply(modifier = "bevel")
 
+EPSILON = 1E-6
+
 #params
 width = 135.5
 height = 30.0
 thickness = 3.0
-radius = 2.0
+radius = 3.0
 
 base_height = 10.0
 base_radius = 5.0
 
 side_width = 7.0
-side_radius = 7.0
+side_radius = 6.0
 
 tooth_height = 20.0
 tooth_width = 1.5
@@ -77,10 +79,16 @@ bpy.ops.mesh.primitive_cube_add(scale=(tooth_height/2.5, side_width, thickness))
 side = bpy.context.object
 side.scale[0] = 2.5 #this is for the uneven beveling later
 bpy.ops.transform.translate(value=(base_height+tooth_height/2.0, -width/2.0+side_width/2.0, thickness/2.0))
-#bevel left edge
+
+#round the 2 vertical edges
+#round left edge
 l_edge = side.vertex_groups.new(name="l_edge")
 l_edge.add([4, 5], 1.0, "REPLACE")
 bevel(side, "l_edge", side_radius)
+#round right edge
+r_edge = side.vertex_groups.new(name="r_edge")
+r_edge.add([4, 5], 1.0, "REPLACE")
+bevel(side, "r_edge", radius)
 
 union(base, side)
 
@@ -95,18 +103,19 @@ top = base.vertex_groups.new(name="top")
 bottom = base.vertex_groups.new(name="bottom")
 for vert in base.data.vertices:
     print(vert.co.z)
-    if (vert.co.z <= -thickness/2.0):
+    if (vert.co.z - EPSILON <= -thickness/2.0):
         bottom.add([vert.index,], 1.0, "ADD")
-    if (vert.co.z >= thickness/2.0):
+    if (vert.co.z + EPSILON >= thickness/2.0):
         top.add([vert.index,], 1.0, "ADD")
+bevel(base, "top", radius)
+bevel(base, "bottom", radius)
 
-
-##add teeth
-##create teeth
-#bpy.ops.mesh.primitive_cube_add(scale=(tooth_height,tooth_width,thickness))
-#tooth = bpy.context.object
-#bpy.ops.transform.translate(value=(base_height+tooth_height/2.0,-width/2.0+side_width+tooth_spacing+tooth_width/2.0,thickness/2.0))
-##add modify tooth shape here
+#add teeth
+#create teeth
+bpy.ops.mesh.primitive_cube_add(scale=(tooth_height,tooth_width,thickness))
+tooth = bpy.context.object
+bpy.ops.transform.translate(value=(base_height+tooth_height/2.0,-width/2.0+side_width+tooth_spacing+tooth_width/2.0,thickness/2.0))
+#add modify tooth shape here
 #for i in range(tooth_count):
 #    union(base, tooth)
 #    
