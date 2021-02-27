@@ -1,5 +1,6 @@
 import bpy, bmesh
 import math
+import time
 
 EPSILON = 1E-6
 
@@ -42,23 +43,23 @@ def intersect(target, object):
     bpy.context.view_layer.objects.active = target
     bpy.ops.object.modifier_apply(modifier = "and")
     
-def bevelEdges(object, vgroup, radius):
+def bevelEdges(object, vgroup, radius, segments = 5):
     mod = object.modifiers.new("bevel", type = "BEVEL")
     mod.limit_method = "VGROUP"
     mod.vertex_group = vgroup
     mod.width = radius
-    mod.segments = 20
+    mod.segments = segments
     mod.use_clamp_overlap = True
     mod.miter_outer = "MITER_ARC"
     bpy.context.view_layer.objects.active = object
     bpy.ops.object.modifier_apply(modifier = "bevel")
     
-def bevelSharpEdges(object, radius):
+def bevelSharpEdges(object, radius, segments = 5, angle = 60):
     mod = object.modifiers.new("beveL", type = "BEVEL")
     mod.limit_method = "ANGLE"
-    mod.angle_limit = 60.0 * math.pi / 180.0
+    mod.angle_limit = angle * math.pi / 180.0
     mod.width = radius
-    mod.segments = 15
+    mod.segments = segments
     mod.use_clamp_overlap = True
     mod.miter_outer = "MITER_ARC"
     bpy.context.view_layer.objects.active = object
@@ -78,6 +79,12 @@ def removeDuplicates(object):
     bpy.context.view_layer.objects.active = object
     bpy.ops.object.editmode_toggle()
     bpy.ops.mesh.remove_doubles()
+    bpy.ops.object.editmode_toggle()
+    
+def recalcNormals(object):
+    bpy.context.view_layer.objects.active = object
+    bpy.ops.object.editmode_toggle()
+    bpy.ops.mesh.normals_make_consistent(inside=False)
     bpy.ops.object.editmode_toggle()
     
 
@@ -104,7 +111,7 @@ tooth_width = 1.5
 tooth_spacing = 1.5
 tooth_count = 40
 
-
+start_time = time.time()
 init()
 
 #BASE/HEAD PART
@@ -116,20 +123,8 @@ top_left = base.vertex_groups.new(name = "topleft")
 top_left.add([0, 1], 1.0, "REPLACE")
 top_right = base.vertex_groups.new(name = "topright")
 top_right.add([2, 3], 1.0, "REPLACE")
-bevelEdges(base, "topleft", base_radius)
-bevelEdges(base, "topright", base_radius)
-
-
-#MIDDLE PART
-bpy.ops.mesh.primitive_cube_add(location = (base_height+base_height/6.0, 0.0, thickness/2.0),
-                                scale = (base_height/18.0, width, thickness/3.0)) #top
-middle = bpy.context.object
-middle.scale[0] = 6.0
-verts = middle.vertex_groups.new(name = "edges")
-verts.add([4, 6, 5, 7], 1.0, "REPLACE")
-bevelEdges(middle, "edges", thickness/6.0)
-merge(base, middle)                              
-bpy.data.objects.remove(middle)
+bevelEdges(base, "topleft", base_radius, 10)
+bevelEdges(base, "topright", base_radius, 10)
 
 
 #ADD THE 2 SIDE PARTS
@@ -145,7 +140,7 @@ bpy.ops.transform.translate(value = (base_height+tooth_height/2.0,
 #round left edge
 l_edge = side.vertex_groups.new(name = "l_edge")
 l_edge.add([4, 5], 1.0, "REPLACE")
-bevelEdges(side, "l_edge", side_radius)
+bevelEdges(side, "l_edge", side_radius, 10)
 #round right edge
 r_edge = side.vertex_groups.new(name = "r_edge")
 r_edge.add([4, 5], 1.0, "REPLACE")
@@ -158,7 +153,6 @@ bpy.ops.transform.translate(value = (0.0, width-side_width, 0.0))
 bpy.ops.transform.rotate(value = math.pi, orient_axis = "X")
 merge(base, side)
 bpy.data.objects.remove(side)
-removeDuplicates(base)
 
 #round horizontal edges
 top = base.vertex_groups.new(name = "top")
@@ -175,8 +169,9 @@ bevelEdges(base, "bottom", radius)
 #ADD TEETH
 #create teeth
 bpy.ops.mesh.primitive_cone_add(scale = (0.9*thickness/2.0, 1.0, 1.1*tooth_height),
-                                radius1 = 1.4*tooth_width,
-                                radius2 = 0.8*tooth_width)
+                                radius1 = 1.25*tooth_width,
+                                radius2 = 0.75*tooth_width,
+                                vertices = 20)
 tooth = bpy.context.object
 #select top edge
 top = tooth.vertex_groups.new(name = "top")
@@ -193,8 +188,24 @@ bpy.ops.transform.translate(value = (base_height+(1.0/1.1)*tooth_height/2.0,
                                      thickness/2.0))
 #add modify tooth shape here
 for i in range(tooth_count):
-    merge(base, tooth)
+    fastMerge(base, tooth)
     
     bpy.context.view_layer.objects.active = tooth
     bpy.ops.transform.translate(value = (0.0, tooth_spacing+tooth_width, 0.0))
 bpy.data.objects.remove(tooth)
+
+
+#MIDDLE PART
+#NOTE: this part should be added last, otherwise fastMerge won't work properly, and
+#exact merge will take 10+ seconds
+bpy.ops.mesh.primitive_cube_add(location = (base_height+base_height/6.0, 0.0, thickness/2.0),
+                                scale = (base_height/18.0, width, thickness/3.0)) #top
+middle = bpy.context.object
+middle.scale[0] = 6.0
+verts = middle.vertex_groups.new(name = "edges")
+verts.add([4, 6, 5, 7], 1.0, "REPLACE")
+bevelEdges(middle, "edges", thickness/6.0)
+fastMerge(base, middle)                              
+bpy.data.objects.remove(middle)
+
+print("%s seconds" % round((time.time() - start_time), 4))
