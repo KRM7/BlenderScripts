@@ -1,1 +1,2 @@
-use symmetry for faster generation
+use symmetry for faster generation?
+...
