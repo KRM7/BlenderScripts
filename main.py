@@ -1,11 +1,13 @@
 import sys
 sys.path.append("C:\\Users\\Krisztián\\source\\repos\\BlenderScripts")
+
 import bpy, bmesh
-import operators as op
-import utils
-import haircomb as hc
 import math
 import time
+
+import utils
+import haircomb as hc
+
 
 def init():
     #delete everything
@@ -19,14 +21,8 @@ def init():
 start_time = time.time()
 init()
 
-base = hc.createHaircomb()
-
-#ADD MATERIAL
-mat = bpy.data.materials.new(name = "Mat")
-mat.diffuse_color = (0.8, 0.7, 1.0, 1.0)
-mat.metallic = 0.1
-mat.roughness = 0.7
-base.data.materials.append(mat)
+haircomb = hc.Haircomb()
+haircomb.createHaircomb()
 
 #ADD LIGHT
 bpy.ops.object.light_add(type = "POINT", location = (110, 50, 160))
