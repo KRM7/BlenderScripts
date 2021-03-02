@@ -160,8 +160,8 @@ class Haircomb:
         bpy.data.objects.remove(middle)
 
         #add material
-        mat = bpy.data.materials.new(name = "Mat")
-        mat.diffuse_color = (0.8, 0.7, 1.0, 1.0)
-        mat.metallic = 0.1
-        mat.roughness = 0.7
-        self.base.data.materials.append(mat)
+        self.mat = bpy.data.materials.new(name = "Mat")
+        self.base.data.materials.append(self.mat)
+
+    def getMaterial(self):
+        return self.mat
