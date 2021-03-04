@@ -151,14 +151,12 @@ class Haircomb:
             bpy.ops.transform.translate(value = (0.0, self.tooth_spacing + self.tooth_width, 0.0))
         bpy.data.objects.remove(tooth)
 
-        #enable smooth shading
-        utils.enableSmoothShading(self.base)
-
         #add middle part
         middle = self.__createMiddle()
         op.fastMerge(self.base, middle)
         bpy.data.objects.remove(middle)
 
+        op.remesh(self.base)
         #add material
         self.mat = bpy.data.materials.new(name = "Mat")
         self.base.data.materials.append(self.mat)

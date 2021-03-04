@@ -61,3 +61,30 @@ def chamferEdges(object, vgroup, radius):
     mod.use_clamp_overlap = False
     bpy.context.view_layer.objects.active = object
     bpy.ops.object.modifier_apply(modifier = "chamfer")
+
+def removeDuplicates(object):
+    bpy.context.view_layer.objects.active = object
+    bpy.ops.object.editmode_toggle()
+    bpy.ops.mesh.remove_doubles()
+    bpy.ops.object.editmode_toggle()
+    
+def recalcNormals(object):
+    bpy.context.view_layer.objects.active = object
+    bpy.ops.object.editmode_toggle()
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    bpy.ops.object.editmode_toggle()
+
+def enableSmoothShading(object):
+    bpy.context.view_layer.objects.active = object
+    mesh = bpy.context.object.data
+    for f in mesh.polygons:
+        f.use_smooth = True
+
+def remesh(object):
+    mod = object.modifiers.new("remesh", type = "REMESH")
+    mod.mode = "VOXEL"
+    mod.voxel_size = 0.1
+    mod.adaptivity = 0.0
+    mod.use_smooth_shade = True
+    bpy.context.view_layer.objects.active = object
+    bpy.ops.object.modifier_apply(modifier = "remesh")

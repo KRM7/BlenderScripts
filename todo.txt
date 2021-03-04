@@ -1,2 +1,14 @@
 use symmetry for faster generation?
 ...
+
+random object generation with tolerances
+
+automatic camera placement,
+(random location in area)
+same with light
+
+object shaders: wood, redo rough plastic and base with principled shader
+
+test object generation with different params
+
+render settings with eevee
