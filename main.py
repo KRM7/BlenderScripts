@@ -22,12 +22,18 @@ haircomb.createHaircomb()
 mat = haircomb.getMaterial()
 shaders.applyPlasticMatte(mat, shaders.COLORS["BLACK"])
 
-#ADD BACKGROUND
+#ADD ENVIRONMENT
 bpy.ops.mesh.primitive_plane_add(size = 2000)
 ground = bpy.context.object
 mat = bpy.data.materials.new(name = "ground")
-shaders.applyBase(mat, shaders.COLORSETS["GREEN"])
+shaders.applyBase(mat, shaders.COLORS["GREEN"])
 ground.data.materials.append(mat)
+
+#world = bpy.context.scene.world
+#world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.1
+#node_env = world.node_tree.nodes.new(type = "ShaderNodeTexEnvironment")
+#img_path = project_path + "\\hdris\\empty_warehouse_01_1k.hdr"
+#node_env.image = bpy.data.images.load(img_path)
 
 #ADD LIGHT
 bpy.ops.object.light_add(type = "POINT", location = (110, 50, 160))

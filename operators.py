@@ -62,7 +62,7 @@ def chamferEdges(object, vgroup, radius):
     bpy.context.view_layer.objects.active = object
     bpy.ops.object.modifier_apply(modifier = "chamfer")
 
-def removeDuplicates(object):
+def removeDuplicateVerts(object):
     bpy.context.view_layer.objects.active = object
     bpy.ops.object.editmode_toggle()
     bpy.ops.mesh.remove_doubles()
@@ -80,7 +80,13 @@ def enableSmoothShading(object):
     for f in mesh.polygons:
         f.use_smooth = True
 
-def remesh(object):
+def disableSmoothShading(object):
+    bpy.context.view_layer.objects.active = object
+    mesh = bpy.context.object.data
+    for f in mesh.polygons:
+        f.use_smooth = False
+
+def remesh(object, voxel_size = 0.1):
     mod = object.modifiers.new("remesh", type = "REMESH")
     mod.mode = "VOXEL"
     mod.voxel_size = 0.1
