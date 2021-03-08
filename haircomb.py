@@ -92,8 +92,8 @@ class Haircomb:
         bpy.ops.mesh.primitive_cone_add(scale = (0.9*self.thickness/2.0,
                                                  1.0,
                                                  1.1*self.tooth_height),
-                                        radius1 = 1.25*self.tooth_width,
-                                        radius2 = 0.75*self.tooth_width,
+                                        radius1 = 1.25*self.thickness/2.0,
+                                        radius2 = 0.75*self.thickness/2.0,
                                         vertices = 20)
         tooth = bpy.context.object
 

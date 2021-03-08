@@ -89,7 +89,7 @@ def disableSmoothShading(object):
 def remesh(object, voxel_size = 0.1):
     mod = object.modifiers.new("remesh", type = "REMESH")
     mod.mode = "VOXEL"
-    mod.voxel_size = 0.1
+    mod.voxel_size = voxel_size
     mod.adaptivity = 0.0
     mod.use_smooth_shade = True
     bpy.context.view_layer.objects.active = object

@@ -1,12 +1,9 @@
-use symmetry for faster generation?
-...
+test object generation with different params
+
+automatic camera placement (random location in area), same with light
 
 random object generation with tolerances?
 
-automatic camera placement,
-(random location in area)
-same with light
-
-test object generation with different params
-
-render settings with eevee
+test different voxel sizes
+detect GPU for cycles render
+improve metal, (wood shaders, shiny shaders for eevee, rough shader for eevee)
