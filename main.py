@@ -4,6 +4,7 @@ sys.path.append(project_path)
 
 import bpy
 import math
+import random
 import time
 
 import utils
@@ -45,10 +46,16 @@ ground.data.materials.append(mat)
 #node_env.image = bpy.data.images.load(img_path)
 
 #ADD LIGHT
-bpy.ops.object.light_add(type = "POINT", location = (110, 50, 160))
+light_pos = random.uniform(0, 2*math.pi)
+light_distance = hc.width
+bpy.ops.object.light_add(type = "POINT", 
+                         location = (light_distance*math.sin(light_pos),
+                                     light_distance*math.cos(light_pos),
+                                     1.2*hc.width))
 light = bpy.context.object
 light.data.color = (1.0, 0.84, 0.45)
-light.data.energy = 1E+6
+light.data.energy = 0.8E+6
+light.data.specular_factor = 0.4
 light.data.cycles.max_bounces = 16
 light.data.shadow_soft_size = 0.1
 
