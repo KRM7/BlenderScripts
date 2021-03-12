@@ -15,7 +15,11 @@ start_time = time.time()
 
 #INIT
 bpy.ops.object.select_all(action = "SELECT")
-bpy.ops.object.delete() 
+bpy.ops.object.delete()
+utils.removeMeshes()
+utils.removeMaterials()
+utils.removeLights()
+utils.removeCameras()
 
 #CREATE OBJECT
 haircomb = hc.Haircomb()
@@ -49,10 +53,9 @@ light.data.cycles.max_bounces = 16
 light.data.shadow_soft_size = 0.1
 
 #ADD CAMERA
-bpy.ops.object.camera_add(location = (100, -100, 150),
-                          rotation = (25*math.pi/180, -30*math.pi/180, 90*math.pi/180),
-                          scale = (1.0, 1.0, 1.0))
-bpy.context.scene.camera = bpy.context.object
+cam_max_view_angle = 60
+cam_max_roll_angle = 20
+camera = utils.placeCamera(haircomb.getBoundingVerts(), cam_max_view_angle, cam_max_roll_angle)
 
 print("Scene done.")
 scene_time = time.time()

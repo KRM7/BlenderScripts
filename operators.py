@@ -44,7 +44,7 @@ def roundEdges(object, vgroup, radius, segments = 5):
 def roundSharpEdges(object, radius, segments = 5, angle = 60):
     mod = object.modifiers.new("beveL", type = "BEVEL")
     mod.limit_method = "ANGLE"
-    mod.angle_limit = angle * math.pi / 180.0
+    mod.angle_limit = angle * math.pi / 180
     mod.width = radius
     mod.segments = segments
     mod.use_clamp_overlap = True
@@ -90,7 +90,7 @@ def remesh(object, voxel_size = 0.1):
     mod = object.modifiers.new("remesh", type = "REMESH")
     mod.mode = "VOXEL"
     mod.voxel_size = voxel_size
-    mod.adaptivity = 0.0
+    mod.adaptivity = 0.05
     mod.use_smooth_shade = True
     bpy.context.view_layer.objects.active = object
     bpy.ops.object.modifier_apply(modifier = "remesh")

@@ -22,6 +22,7 @@ def cyclesRender(filepath, samples = 22, bounces = 16, denoising = False):
     scene.render.filepath = filepath
     #denoising
     if denoising:
+        #TODO denoiser settings
         scene.cycles.use_denoising = True
         scene.cycles.denoiser = "OPTIX"
     else:
