@@ -54,7 +54,7 @@ bpy.ops.object.light_add(type = "POINT",
                                      1.2*hc.width))
 light = bpy.context.object
 light.data.color = (1.0, 0.84, 0.45)
-light.data.energy = 0.8E+6
+light.data.energy = 1E+6
 light.data.specular_factor = 0.4
 light.data.cycles.max_bounces = 16
 light.data.shadow_soft_size = 0.1
