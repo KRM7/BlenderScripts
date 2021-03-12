@@ -172,14 +172,14 @@ class Haircomb:
     def getMaterial(self):
         return self.mat
 
-    def getBoundingVerts(self):
-        return (
-                0, -self.width/2, self.thickness,
-                0, -self.width/2, 0,
-                self.height, -self.width/2, self.thickness,
-                self.height, -self.width/2, 0,
-                0, self.width/2, self.thickness,
-                0, self.width/2, 0,
-                self.height, self.width/2, self.thickness,
-                self.height, self.width/2, 0
+    def getBoundingBox(self):
+        return ( #this format is needed for a blender function (camera_fit_coords)
+                -self.height/40,   -21/40*self.width,  self.thickness,
+                -self.height/40,   -21/40*self.width,  0,
+                41/40*self.height, -21/40*self.width,  self.thickness,
+                41/40*self.height, -21/40*self.width,  0,
+                -self.height/40,    21/40*self.width,  self.thickness,
+                -self.height/40,    21/40*self.width,  0,
+                41/40*self.height,  21/40*self.width,  self.thickness,
+                41/40*self.height,  21/40*self.width,  0
                )

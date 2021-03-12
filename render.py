@@ -30,7 +30,7 @@ def cyclesRender(filepath, samples = 22, bounces = 16, denoising = False):
 
     bpy.ops.render.render(write_still = True)
 
-def eeveeRender(filepath, samples = 16):
+def eeveeRender(filepath, samples = 64):
     scene = bpy.context.scene
     scene.render.engine  = "BLENDER_EEVEE"
     scene.eevee.taa_render_samples = samples

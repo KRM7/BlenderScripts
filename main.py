@@ -7,7 +7,7 @@ import math
 import time
 
 import utils
-import haircomb as hc
+import haircomb
 import shaders
 import render
 
@@ -22,9 +22,9 @@ utils.removeLights()
 utils.removeCameras()
 
 #CREATE OBJECT
-haircomb = hc.Haircomb()
-haircomb.createHaircomb()
-mat = haircomb.getMaterial()
+hc = haircomb.Haircomb()
+hc.createHaircomb()
+mat = hc.getMaterial()
 shaders.applyPlasticMatte(mat, shaders.COLORS["BLACK"])
 
 print("\nObject done.")
@@ -53,9 +53,12 @@ light.data.cycles.max_bounces = 16
 light.data.shadow_soft_size = 0.1
 
 #ADD CAMERA
-cam_max_view_angle = 60
-cam_max_roll_angle = 20
-camera = utils.placeCamera(haircomb.getBoundingVerts(), cam_max_view_angle, cam_max_roll_angle)
+cam_max_view_angle_x = 60
+cam_max_view_angle_y = 30
+cam_max_roll_angle = 15
+coords = hc.getBoundingBox()
+coords = utils.randomExtendBoundingBox(coords, hc.width/6, hc.width/4)
+camera = utils.placeCamera(coords, cam_max_view_angle_x, cam_max_view_angle_y, cam_max_roll_angle)
 
 print("Scene done.")
 scene_time = time.time()
