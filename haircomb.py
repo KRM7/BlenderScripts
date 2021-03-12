@@ -12,7 +12,7 @@ class Haircomb:
                  base_height = 10.0,
                  side_width = 7.0,
                  tooth_height = 20.0,
-                 tooth_count = 40):
+                 tooth_count = 46):
         #set parameters (mm)
         self.width = width                  #overall width of haircomb
         self.thickness = thickness          #overall thickness of haircomb
