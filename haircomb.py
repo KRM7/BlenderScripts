@@ -21,21 +21,24 @@ class Haircomb:
         self.tooth_height = tooth_height    #the length of the teeth
         self.tooth_count = tooth_count      #number of teeth of the haircomb
         #derived parameters
-        self.height = base_height + tooth_height    #overall height of the haircomb
-        self.radius = thickness/5.0                 #standard rounding for most edges
-        self.base_radius = base_height              #radius of upper corners of the base/head
-        self.side_height = tooth_height             #length of the 2 side parts
-        self.side_thickness = thickness             #thickness of the 2 side parts
-        self.side_radius = 0.85*side_width          #radius of the rounding on the 2 sides
-        self.tooth_width = (width - 2*side_width)/(2*tooth_count + 1)   #width of one tooth
-        self.tooth_spacing = self.tooth_width       #distance between 2 teeth
-        self.middle_width = width                   #width of middle part (between the teeth)
-        self.middle_thickness = thickness/3.0       #thickness of the middle part
-        self.middle_height = base_height/3.0        #height of the middle part
+        self.__calcDerivedParams()
+
+    def __calcDerivedParams(self):
+        self.height = self.base_height + self.tooth_height  #overall height of the haircomb
+        self.radius = self.thickness/5                      #standard rounding for most edges
+        self.base_radius = self.base_height                 #radius of upper corners of the base/head
+        self.side_height = self.tooth_height                #length of the 2 side parts
+        self.side_thickness = self.thickness                #thickness of the 2 side parts
+        self.side_radius = 0.85*self.side_width             #radius of the rounding on the 2 sides
+        self.tooth_width = (self.width - 2*self.side_width)/(2*self.tooth_count + 1)   #width of one tooth
+        self.tooth_spacing = self.tooth_width               #distance between 2 teeth
+        self.middle_width = self.width                      #width of middle part (between the teeth)
+        self.middle_thickness = self.thickness/3            #thickness of the middle part
+        self.middle_height = self.base_height/3             #height of the middle part
 
     def __createBase(self):
         #create object
-        bpy.ops.mesh.primitive_cube_add(location = (self.base_height/2.0, 0.0, self.thickness/2.0), 
+        bpy.ops.mesh.primitive_cube_add(location = (self.base_height/2, 0.0, self.thickness/2), 
                                         scale = (self.base_height, self.width, self.thickness))
         base = bpy.context.object
 
@@ -71,9 +74,9 @@ class Haircomb:
     def __createMiddle(self):
         #create object
         scaling_factor = 6.0 #for uneven rounding
-        bpy.ops.mesh.primitive_cube_add(location = (self.base_height + self.middle_height/2.0,
+        bpy.ops.mesh.primitive_cube_add(location = (self.base_height + self.middle_height/2,
                                                     0.0,
-                                                    self.thickness/2.0),
+                                                    self.thickness/2),
                                         scale = (self.middle_height/scaling_factor,
                                                  self.middle_width,
                                                  self.middle_thickness))
@@ -83,30 +86,32 @@ class Haircomb:
         #round the edges
         verts = middle.vertex_groups.new(name = "front")
         verts.add([4, 6, 5, 7], 1.0, "REPLACE")
-        op.roundEdges(middle, "front", self.middle_thickness/2.0)
+        op.roundEdges(middle, "front", self.middle_thickness/2)
 
         return middle
 
     def __createTooth(self):
         #create object
-        bpy.ops.mesh.primitive_cone_add(scale = (0.9*self.thickness/2.0,
+        bpy.ops.mesh.primitive_cone_add(scale = (0.9*self.thickness/2,
                                                  1.0,
                                                  1.1*self.tooth_height),
-                                        radius1 = 1.25*self.thickness/2.0,
-                                        radius2 = 0.75*self.thickness/2.0,
+                                        radius1 = 1.25*self.thickness/2,
+                                        radius2 = 0.75*self.thickness/2,
                                         vertices = 20)
         tooth = bpy.context.object
 
         #round top edge
         verts = tooth.vertex_groups.new(name = "top")
         for vert in tooth.data.vertices:
-            if (vert.co.z + self.EPSILON >= 1.1*self.tooth_height/2.0):
+            if (vert.co.z + self.EPSILON >= 1.1*self.tooth_height/2):
                 verts.add([vert.index], 1.0, "ADD")
         op.roundEdges(tooth, "top", self.radius)
 
         return tooth
 
     def createHaircomb(self):
+        self.__calcDerivedParams()
+
         #add base part
         self.base = self.__createBase()
 
@@ -114,9 +119,9 @@ class Haircomb:
         #left side
         side = self.__createSide()
         bpy.context.view_layer.objects.active = side
-        bpy.ops.transform.translate(value = (self.base_height + self.side_height/2.0,
-                                             -self.width/2.0 + self.side_width/2.0,
-                                             self.thickness/2.0))
+        bpy.ops.transform.translate(value = (self.base_height + self.side_height/2,
+                                             -self.width/2 + self.side_width/2,
+                                             self.thickness/2))
         op.exactMerge(self.base, side)
         #right side
         bpy.ops.transform.translate(value = (0.0, self.width - self.side_width, 0.0))
@@ -128,9 +133,9 @@ class Haircomb:
         top = self.base.vertex_groups.new(name = "top")
         bottom = self.base.vertex_groups.new(name = "bottom")
         for vert in self.base.data.vertices:
-            if (vert.co.z - self.EPSILON <= -self.thickness/2.0):
+            if (vert.co.z - self.EPSILON <= -self.thickness/2):
                 bottom.add([vert.index], 1.0, "ADD")
-            elif (vert.co.z + self.EPSILON >= self.thickness/2.0):
+            elif (vert.co.z + self.EPSILON >= self.thickness/2):
                 top.add([vert.index], 1.0, "ADD")
             else:
                 continue
@@ -140,10 +145,10 @@ class Haircomb:
         #add teeth
         tooth = self.__createTooth()
         #move into pos
-        bpy.ops.transform.rotate(value = 90.0*math.pi/180.0, orient_axis = "Y")
-        bpy.ops.transform.translate(value = (self.base_height + (1.0/1.1)*self.tooth_height/2.0,
-                                             -self.width/2.0 + self.side_width + self.tooth_spacing + self.tooth_width/2.0,
-                                             self.thickness/2.0))
+        bpy.ops.transform.rotate(value = 90*math.pi/180, orient_axis = "Y")
+        bpy.ops.transform.translate(value = (self.base_height + (1.0/1.1)*self.tooth_height/2,
+                                             -self.width/2 + self.side_width + self.tooth_spacing + self.tooth_width/2,
+                                             self.thickness/2))
         for i in range(self.tooth_count):
             op.fastMerge(self.base, tooth)
             #move to next teeth position
@@ -156,10 +161,25 @@ class Haircomb:
         op.fastMerge(self.base, middle)
         bpy.data.objects.remove(middle)
 
-        op.remesh(self.base)
+        op.remesh(self.base, voxel_size = 0.1)
         #add material
         self.mat = bpy.data.materials.new(name = "Mat")
         self.base.data.materials.append(self.mat)
 
+    def getObject(self):
+        return self.base
+
     def getMaterial(self):
         return self.mat
+
+    def getBoundingVerts(self):
+        return (
+                0, -self.width/2, self.thickness,
+                0, -self.width/2, 0,
+                self.height, -self.width/2, self.thickness,
+                self.height, -self.width/2, 0,
+                0, self.width/2, self.thickness,
+                0, self.width/2, 0,
+                self.height, self.width/2, self.thickness,
+                self.height, self.width/2, 0
+               )
