@@ -1,8 +1,5 @@
-automatic camera placement (random location in area), same with light
-
 random object generation with tolerances?
 
-test different denoiser settings for cycles, maybe it can be sped up
-
-detect GPU for cycles render
 improve metal, (wood shaders, shiny shaders for eevee, rough shader for eevee)
+
+manufacturing defect generation

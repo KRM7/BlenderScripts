@@ -3,6 +3,8 @@ import sys
 sys.path.append(project_path)
 
 import bpy
+import mathutils
+
 import math
 import random
 import time
@@ -45,20 +47,6 @@ ground.data.materials.append(mat)
 #img_path = project_path + "\\hdris\\empty_warehouse_01_1k.hdr"
 #node_env.image = bpy.data.images.load(img_path)
 
-#ADD LIGHT
-light_pos = random.uniform(0, 2*math.pi)
-light_distance = hc.width
-bpy.ops.object.light_add(type = "POINT", 
-                         location = (light_distance*math.sin(light_pos),
-                                     light_distance*math.cos(light_pos),
-                                     1.2*hc.width))
-light = bpy.context.object
-light.data.color = (1.0, 0.84, 0.45)
-light.data.energy = 1E+6
-light.data.specular_factor = 0.4
-light.data.cycles.max_bounces = 16
-light.data.shadow_soft_size = 0.1
-
 #ADD CAMERA
 cam_max_view_angle_x = 60
 cam_max_view_angle_y = 30
@@ -67,12 +55,26 @@ coords = hc.getBoundingBox()
 coords = utils.randomExtendBoundingBox(coords, hc.width/6, hc.width/4)
 camera = utils.placeCamera(coords, cam_max_view_angle_x, cam_max_view_angle_y, cam_max_roll_angle)
 
+#ADD LIGHTING
+light_pos = random.uniform(0, 2*math.pi)
+light_distance = hc.width
+bpy.ops.object.light_add(type = "POINT", 
+                         location = (light_distance*math.sin(light_pos),
+                                     light_distance*math.cos(light_pos),
+                                     1.2*hc.width))
+light1 = bpy.context.object
+light1.data.color = (1.0, 0.84, 0.45)
+light1.data.energy = 1E+6
+light1.data.specular_factor = 0.6
+light1.data.cycles.max_bounces = 32
+light1.data.shadow_soft_size = 0.1
+
 print("Scene done.")
 scene_time = time.time()
 print("Scene generation time: %s seconds" % round(scene_time - gen_time, 2))
 
 #RENDER
-render.eeveeRender(project_path + "\\imgs\\test")
+render.cyclesRender(project_path + "\\imgs\\test")
 
 print("Render done.")
 render_time = time.time()

@@ -1,10 +1,18 @@
 import bpy
 
-def cyclesRender(filepath, samples = 22, bounces = 16, denoising = False):
+def cyclesRender(filepath, samples = 64, bounces = 32, denoising = False):
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
-    scene.cycles.device = "GPU"
+    
+    prefs = bpy.context.preferences.addons["cycles"].preferences
+    prefs.compute_device_type = "CUDA"
+    cuda, opencl = prefs.get_devices()
+    if cuda:
+        scene.cycles.device = "GPU"
+    for device in prefs.devices:
+        device["use"] = 1
     scene.cycles.feature_set = "EXPERIMENTAL"
+
     scene.cycles.samples = samples
     scene.cycles.max_bounces = bounces
     scene.cycles.debug_use_spatial_splits = True
@@ -22,9 +30,9 @@ def cyclesRender(filepath, samples = 22, bounces = 16, denoising = False):
     scene.render.filepath = filepath
     #denoising
     if denoising:
-        #TODO denoiser settings
         scene.cycles.use_denoising = True
         scene.cycles.denoiser = "OPTIX"
+        scene.denoising_optix_input_passes = "RGB_ALBEDO_NORMAL"
     else:
         scene.cycles.use_denoising = False
 
