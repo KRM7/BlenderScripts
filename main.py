@@ -42,10 +42,11 @@ shaders.applyBase(mat, shaders.COLORS["GREEN"])
 ground.data.materials.append(mat)
 
 #world = bpy.context.scene.world
-#world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.1
+#world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.4
 #node_env = world.node_tree.nodes.new(type = "ShaderNodeTexEnvironment")
 #img_path = project_path + "\\hdris\\empty_warehouse_01_1k.hdr"
 #node_env.image = bpy.data.images.load(img_path)
+#world.node_tree.links.new(node_env.outputs["Color"], world.node_tree.nodes["Background"].inputs["Color"])
 
 #ADD CAMERA
 cam_max_view_angle_x = 60
