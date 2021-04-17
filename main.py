@@ -38,7 +38,7 @@ print("Object generation time: %s seconds" % round(gen_time - start_time, 2))
 bpy.ops.mesh.primitive_plane_add(size = 2000)
 ground = bpy.context.object
 mat = bpy.data.materials.new(name = "ground")
-shaders.applyBase(mat, shaders.COLORS["GREEN"])
+shaders.applyBase(mat, shaders.COLORS["GREEN"], randomize = True)
 ground.data.materials.append(mat)
 
 #world = bpy.context.scene.world
