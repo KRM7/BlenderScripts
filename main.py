@@ -25,7 +25,7 @@ utils.removeLights()
 utils.removeCameras()
 
 #CREATE OBJECT
-hc = haircomb.Haircomb()
+hc = haircomb.Haircomb(missing_teeth = False)
 hc.createHaircomb()
 mat = hc.getMaterial()
 shaders.applyPlasticMatte(mat, shaders.COLORS["BLACK"])
@@ -48,37 +48,47 @@ ground.data.materials.append(mat)
 #node_env.image = bpy.data.images.load(img_path)
 #world.node_tree.links.new(node_env.outputs["Color"], world.node_tree.nodes["Background"].inputs["Color"])
 
-#ADD CAMERA
-cam_max_view_angle_x = 60
-cam_max_view_angle_y = 30
-cam_max_roll_angle = 15
-coords = hc.getBoundingBox()
-coords = utils.randomExtendBoundingBox(coords, hc.width/6, hc.width/4)
-camera = utils.placeCamera(coords, cam_max_view_angle_x, cam_max_view_angle_y, cam_max_roll_angle)
+num_images = 50
+for i in range(num_images):
 
-#ADD LIGHTING
-light_pos = random.uniform(0, 2*math.pi)
-light_distance = hc.width
-bpy.ops.object.light_add(type = "POINT", 
-                         location = (light_distance*math.sin(light_pos),
-                                     light_distance*math.cos(light_pos),
-                                     1.2*hc.width))
-light1 = bpy.context.object
-light1.data.color = (1.0, 0.84, 0.45)
-light1.data.energy = 1E+6
-light1.data.specular_factor = 0.6
-light1.data.cycles.max_bounces = 32
-light1.data.shadow_soft_size = 0.1
+    #ADD CAMERA
+    utils.removeCameras()
 
-print("Scene done.")
-scene_time = time.time()
-print("Scene generation time: %s seconds" % round(scene_time - gen_time, 2))
+    cam_max_view_angle_x = 60
+    cam_max_view_angle_y = 30
+    cam_max_roll_angle = 15
+    coords = hc.getBoundingBox()
+    coords = utils.randomExtendBoundingBox(coords, hc.width/6, hc.width/4)
+    camera = utils.placeCamera(coords, cam_max_view_angle_x, cam_max_view_angle_y, cam_max_roll_angle)
 
-#RENDER
-render.cyclesRender(project_path + "\\imgs\\test")
+    #ADD LIGHTING
+    utils.removeLights()
 
-print("Render done.")
-render_time = time.time()
-print("Render time: %s seconds" % round(render_time - scene_time, 2))
+    light_pos = random.uniform(0, 2*math.pi)
+    light_distance = hc.width + random.uniform(-hc.width/3, hc.width/1.5)
+    bpy.ops.object.light_add(type = "POINT", 
+                             location = (light_distance*math.sin(light_pos),
+                                         light_distance*math.cos(light_pos),
+                                         1.2*hc.width + random.uniform(-hc.width/3, hc.width/1.5))
+                            )
+    light1 = bpy.context.object
+    light1.data.color = (1.0 + random.uniform(-0.15, 0),
+                         0.85 + random.uniform(-0.15, 0.15),
+                         0.45 + random.uniform(-0.15, 0.15))
+    light1.data.energy = 1E+6 + random.uniform(-0.3E+6, 2.5E+6)
+    light1.data.specular_factor = 0.6 + random.uniform(-0.2, 0.2)
+    light1.data.cycles.max_bounces = 64
+    light1.data.shadow_soft_size = 0.1
+
+    #print("Scene done.")
+    #scene_time = time.time()
+    #print("Scene generation time: %s seconds" % round(scene_time - gen_time, 2))
+
+    #RENDER
+    render.cyclesRender(project_path + "\\imgs\\batch\\" + str(i))
+
+    #print("Render done.")
+    #render_time = time.time()
+    #print("Render time: %s seconds" % round(render_time - scene_time, 2))
 
 print("Overall time: %s seconds" % round((time.time() - start_time), 2))

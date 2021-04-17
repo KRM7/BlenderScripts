@@ -1,4 +1,5 @@
 import bpy
+import random
 
 COLORS = {
     "BLACK": (0.0, 0.0, 0.0, 1.0),
@@ -13,7 +14,7 @@ COLORS = {
     "ORANGE": (0.8, 0.16, 0.0, 1.0)
 }
 
-def applyBase(mat, color):
+def applyBase(mat, color, randomize = False):
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
     nodes.clear()
@@ -36,25 +37,26 @@ def applyBase(mat, color):
     node_noise.inputs["Detail"].default_value = 2.0
     node_noise.inputs["Roughness"].default_value = 0.0
     node_noise.inputs["Distortion"].default_value = 0.0
+    
     #bump shader
-    node_bump.inputs["Strength"].default_value = 0.1
-    node_bump.inputs["Distance"].default_value = 0.1
+    node_bump.inputs["Strength"].default_value = 0.1 + random(-0.05, 0.05)
+    node_bump.inputs["Distance"].default_value = 0.05 + random(-0.02, 0.02)
+    
     #principled shader
     node_principled.distribution = "GGX"
     node_principled.subsurface_method = "BURLEY"
     node_principled.inputs["Base Color"].default_value = color
     node_principled.inputs["Subsurface"].default_value = 0.0
-    node_principled.inputs["Subsurface Color"].default_value = color
     node_principled.inputs["Metallic"].default_value = 0.0
-    node_principled.inputs["Specular"].default_value = 0.3
+    node_principled.inputs["Specular"].default_value = 0.3 + random.uniform(-0.1, 0.1)
     node_principled.inputs["Specular Tint"].default_value = 0.0
-    node_principled.inputs["Roughness"].default_value = 0.3
+    node_principled.inputs["Roughness"].default_value = 0.4 + random.uniform(-0.1, 0.1)
     node_principled.inputs["Anisotropic"].default_value = 0.0
     node_principled.inputs["Anisotropic Rotation"].default_value = 0.0
     node_principled.inputs["Sheen"].default_value = 0.0
     node_principled.inputs["Sheen Tint"].default_value = 0.5
-    node_principled.inputs["Clearcoat"].default_value = 0.0
-    node_principled.inputs["Clearcoat Roughness"].default_value = 0.05
+    node_principled.inputs["Clearcoat"].default_value = 0.1 + random.uniform(-0.1, 0.1)
+    node_principled.inputs["Clearcoat Roughness"].default_value = 0.15 + random.uniform(-0.05, 0.05)
     node_principled.inputs["Transmission"].default_value = 0.0
     node_principled.inputs["Emission Strength"].default_value = 0.0
 
@@ -81,9 +83,11 @@ def applyPlasticRough(mat, color):
     node_noise.inputs["Detail"].default_value = 2.0
     node_noise.inputs["Roughness"].default_value = 0.0
     node_noise.inputs["Distortion"].default_value = 0.0
+    
     #bump shader
     node_bump.inputs["Strength"].default_value = 1.0
     node_bump.inputs["Distance"].default_value = 0.2
+    
     #principled shader
     node_principled.distribution = "GGX"
     node_principled.subsurface_method = "BURLEY"
@@ -129,9 +133,11 @@ def applyPlasticMatte(mat, color):
     node_noise.inputs["Detail"].default_value = 2.0
     node_noise.inputs["Roughness"].default_value = 0.0
     node_noise.inputs["Distortion"].default_value = 0.0
+    
     #bump shader
     node_bump.inputs["Strength"].default_value = 0.3
     node_bump.inputs["Distance"].default_value = 0.2
+   
     #principled shader
     node_principled.distribution = "MULTI_GGX"
     node_principled.subsurface_method = "BURLEY"
@@ -177,9 +183,11 @@ def applyPlasticShiny(mat, color):
     node_noise.inputs["Detail"].default_value = 2.0
     node_noise.inputs["Roughness"].default_value = 0.0
     node_noise.inputs["Distortion"].default_value = 0.0
+    
     #bump shader
     node_bump.inputs["Strength"].default_value = 0.02
     node_bump.inputs["Distance"].default_value = 0.05
+    
     #principled shader
     node_principled.distribution = "MULTI_GGX"
     node_principled.subsurface_method = "BURLEY"
@@ -222,9 +230,11 @@ def applyMetal(mat, color):
     node_noise.inputs["Detail"].default_value = 2.0
     node_noise.inputs["Roughness"].default_value = 0.0
     node_noise.inputs["Distortion"].default_value = 0.0
+    
     #bump shader
     node_bump.inputs["Strength"].default_value = 0.1
     node_bump.inputs["Distance"].default_value = 0.05
+    
     #principled shader
     node_principled.distribution = "MULTI_GGX"
     node_principled.subsurface_method = "BURLEY"
@@ -277,25 +287,30 @@ def applyWood(mat):
     node_vor.distance = "MINKOWSKI"
     node_vor.inputs["Scale"].default_value = 60.0
     node_vor.inputs["Exponent"].default_value = 0.4
+    
     #wave texture shader
     node_wave.wave_type = "BANDS"
     node_wave.bands_direction = "DIAGONAL"
     node_wave.wave_profile = "TRI"
     node_wave.inputs["Scale"].default_value = 50.0
+    
     #color ramp
     node_color.color_ramp.interpolation = "B_SPLINE"
     node_color.color_ramp.elements[0].position = 0.21
     node_color.color_ramp.elements[0].color = (0.16, 0.09, 0.05, 1.0)
     node_color.color_ramp.elements[1].position = 0.76
     node_color.color_ramp.elements[1].color = (0.42, 0.29, 0.15, 1.0)
+    
     #noise texture shader
     node_noise.inputs["Scale"].default_value = 1000.0
     node_noise.inputs["Detail"].default_value = 2.0
     node_noise.inputs["Roughness"].default_value = 0.0
     node_noise.inputs["Distortion"].default_value = 0.0
+    
     #bump shader
     node_bump.inputs["Strength"].default_value = 1.0
     node_bump.inputs["Distance"].default_value = 0.3
+    
     #principled shader
     node_principled.distribution = "MULTI_GGX"
     node_principled.subsurface_method = "BURLEY"
