@@ -24,6 +24,7 @@ utils.removeMaterials()
 utils.removeLights()
 utils.removeCameras()
 
+
 #CREATE OBJECT
 hc = haircomb.Haircomb(missing_teeth = False)
 hc.createHaircomb()
@@ -34,58 +35,74 @@ print("\nObject done.")
 gen_time = time.time()
 print("Object generation time: %s seconds" % round(gen_time - start_time, 2))
 
+
 #ADD ENVIRONMENT
 bpy.ops.mesh.primitive_plane_add(size = 2000)
 ground = bpy.context.object
 mat = bpy.data.materials.new(name = "ground")
-shaders.applyBase(mat, shaders.COLORS["GREEN"], randomize = True)
+shaders.applyPorcelain(mat)
 ground.data.materials.append(mat)
 
-#world = bpy.context.scene.world
-#world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.4
-#node_env = world.node_tree.nodes.new(type = "ShaderNodeTexEnvironment")
-#img_path = project_path + "\\hdris\\empty_warehouse_01_1k.hdr"
-#node_env.image = bpy.data.images.load(img_path)
-#world.node_tree.links.new(node_env.outputs["Color"], world.node_tree.nodes["Background"].inputs["Color"])
+hdris = [
+         project_path + "\\hdris\\lebombo.hdr",                 #light strength 0.1-0.6
+         project_path + "\\hdris\\old_bus_depot.hdr",           #light strength 0.3-1.5
+         project_path + "\\hdris\\peppermint_powerplant.hdr"    #light strength 0.3-1.5
+        ]
 
+world = bpy.context.scene.world
+node_env = world.node_tree.nodes.new(type = "ShaderNodeTexEnvironment")
+world.node_tree.links.new(node_env.outputs["Color"], world.node_tree.nodes["Background"].inputs["Color"])
+
+
+#GENERATE IMAGES
 num_images = 50
 for i in range(num_images):
-
     #ADD CAMERA
     utils.removeCameras()
 
     cam_max_view_angle_x = 60
     cam_max_view_angle_y = 30
     cam_max_roll_angle = 15
+
     coords = hc.getBoundingBox()
-    coords = utils.randomExtendBoundingBox(coords, hc.width/6, hc.width/4)
+    coords = utils.randomExtendBoundingBox(bounding_box = coords, max_x = hc.width/6, max_y = hc.width/4)
+
     camera = utils.placeCamera(coords, cam_max_view_angle_x, cam_max_view_angle_y, cam_max_roll_angle)
 
-    #ADD LIGHTING
-    utils.removeLights()
 
-    light_pos = random.uniform(0, 2*math.pi)
-    light_distance = hc.width + random.uniform(-hc.width/3, hc.width/1.5)
-    bpy.ops.object.light_add(type = "POINT", 
-                             location = (light_distance*math.sin(light_pos),
-                                         light_distance*math.cos(light_pos),
-                                         1.2*hc.width + random.uniform(-hc.width/3, hc.width/1.5))
-                            )
-    light1 = bpy.context.object
-    light1.data.color = (1.0 + random.uniform(-0.15, 0),
-                         0.85 + random.uniform(-0.15, 0.15),
-                         0.45 + random.uniform(-0.15, 0.15))
-    light1.data.energy = 1E+6 + random.uniform(-0.3E+6, 2.5E+6)
-    light1.data.specular_factor = 0.6 + random.uniform(-0.2, 0.2)
-    light1.data.cycles.max_bounces = 64
-    light1.data.shadow_soft_size = 0.1
+    #ADD LIGHTING
+    #utils.removeLights()
+
+    #light_pos = random.uniform(0, 2*math.pi)
+    #light_distance = hc.width + random.uniform(-hc.width/3, hc.width/1.5)
+    #bpy.ops.object.light_add(type = "POINT", 
+    #                         location = (light_distance*math.sin(light_pos),
+    #                                     light_distance*math.cos(light_pos),
+    #                                     1.2*hc.width + random.uniform(-hc.width/3, hc.width/1.5))
+    #                        )
+    #light1 = bpy.context.object
+    #light1.data.color = (1.0 + random.uniform(-0.15, 0),
+    #                     0.85 + random.uniform(-0.15, 0.15),
+    #                     0.45 + random.uniform(-0.15, 0.15))
+    #light1.data.energy = 1E+6 + random.uniform(-0.3E+6, 2.5E+6)
+    #light1.data.specular_factor = 0.6 + random.uniform(-0.2, 0.2)
+    #light1.data.cycles.max_bounces = 64
+    #light1.data.shadow_soft_size = 0.1
 
     #print("Scene done.")
     #scene_time = time.time()
     #print("Scene generation time: %s seconds" % round(scene_time - gen_time, 2))
 
+    hdri_idx = random.choice(range(3))
+    node_env.image = bpy.data.images.load(hdris[hdri_idx], check_existing = True)
+    if hdri_idx == 0:
+        world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.1 + random.uniform(0.0, 0.5)
+    else:
+        world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.3 + random.uniform(0.0, 1.2)
+
+
     #RENDER
-    render.cyclesRender(project_path + "\\imgs\\batch\\" + str(i))
+    render.cyclesRender(project_path + "\\imgs\\batch\\" + str(i), samples = 64, bounces = 32)
 
     #print("Render done.")
     #render_time = time.time()

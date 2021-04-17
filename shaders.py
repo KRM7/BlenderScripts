@@ -361,7 +361,7 @@ def applyPlastic1(mat, scale = 45.0):
     node_mapping.inputs["Scale"].default_value[2] = scale
 
 
-def applyPlastic2(mat, scale = 50.0):
+def applyPlastic2(mat, scale = 45.0):
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
     nodes.clear()
@@ -406,7 +406,54 @@ def applyPlastic2(mat, scale = 50.0):
     node_mapping.inputs["Scale"].default_value[1] = scale
     node_mapping.inputs["Scale"].default_value[2] = scale
 
-def applyTiles(mat, scale = 50.0):
+
+def applyPlastic3(mat, scale = 45.0):
+    mat.use_nodes = True
+    nodes = mat.node_tree.nodes
+    nodes.clear()
+    links = mat.node_tree.links
+    links.clear()
+
+    #create shader nodes
+    node_output = nodes.new(type = "ShaderNodeOutputMaterial")
+    node_principled = nodes.new(type = "ShaderNodeBsdfPrincipled")
+
+    node_color = nodes.new(type = "ShaderNodeTexImage")
+    node_displacement_t = nodes.new(type = "ShaderNodeTexImage")
+    node_normal = nodes.new(type = "ShaderNodeTexImage")
+    node_roughness = nodes.new(type = "ShaderNodeTexImage")
+
+    node_displacement = nodes.new(type = "ShaderNodeDisplacement")
+    node_coord = nodes.new(type = "ShaderNodeTexCoord")
+    node_mapping = nodes.new(type = "ShaderNodeMapping")
+
+    #connect shader nodes
+    links.new(node_principled.outputs["BSDF"], node_output.inputs["Surface"])
+    links.new(node_color.outputs["Color"], node_principled.inputs["Base Color"])
+    links.new(node_displacement_t.outputs["Color"], node_displacement.inputs["Height"])
+    links.new(node_displacement.outputs["Displacement"], node_output.inputs["Displacement"])
+    links.new(node_normal.outputs["Color"], node_principled.inputs["Normal"])
+    links.new(node_roughness.outputs["Color"], node_principled.inputs["Roughness"])
+    links.new(node_coord.outputs["UV"], node_mapping.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_color.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_displacement_t.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_normal.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_roughness.inputs["Vector"])
+
+    #inputs
+    node_principled.inputs["Specular"].default_value = 0.33
+    node_displacement.inputs["Scale"].default_value = 0.05
+    node_color.image = bpy.data.images.load(project_path + "\\textures\\Plastic3\\Color.png", check_existing=True)
+    node_displacement_t.image = bpy.data.images.load(project_path + "\\textures\\Plastic3\\Displacement.png", check_existing=True)
+    node_normal.image = bpy.data.images.load(project_path + "\\textures\\Plastic3\\Normal.png", check_existing=True)
+    node_roughness.image = bpy.data.images.load(project_path + "\\textures\\Plastic3\\Roughness.png", check_existing=True)
+
+    node_mapping.inputs["Scale"].default_value[0] = scale
+    node_mapping.inputs["Scale"].default_value[1] = scale
+    node_mapping.inputs["Scale"].default_value[2] = scale
+
+
+def applyTiles(mat, scale = 25.0):
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
     nodes.clear()
@@ -446,6 +493,52 @@ def applyTiles(mat, scale = 50.0):
     node_displacement_t.image = bpy.data.images.load(project_path + "\\textures\\Tiles\\Displacement.png", check_existing=True)
     node_normal.image = bpy.data.images.load(project_path + "\\textures\\Tiles\\Normal.png", check_existing=True)
     node_roughness.image = bpy.data.images.load(project_path + "\\textures\\Tiles\\Roughness.png", check_existing=True)
+
+    node_mapping.inputs["Scale"].default_value[0] = scale
+    node_mapping.inputs["Scale"].default_value[1] = scale
+    node_mapping.inputs["Scale"].default_value[2] = scale
+
+
+def applyPorcelain(mat, scale = 45.0):
+    mat.use_nodes = True
+    nodes = mat.node_tree.nodes
+    nodes.clear()
+    links = mat.node_tree.links
+    links.clear()
+
+    #create shader nodes
+    node_output = nodes.new(type = "ShaderNodeOutputMaterial")
+    node_principled = nodes.new(type = "ShaderNodeBsdfPrincipled")
+
+    node_color = nodes.new(type = "ShaderNodeTexImage")
+    node_displacement_t = nodes.new(type = "ShaderNodeTexImage")
+    node_normal = nodes.new(type = "ShaderNodeTexImage")
+    node_roughness = nodes.new(type = "ShaderNodeTexImage")
+
+    node_displacement = nodes.new(type = "ShaderNodeDisplacement")
+    node_coord = nodes.new(type = "ShaderNodeTexCoord")
+    node_mapping = nodes.new(type = "ShaderNodeMapping")
+
+    #connect shader nodes
+    links.new(node_principled.outputs["BSDF"], node_output.inputs["Surface"])
+    links.new(node_color.outputs["Color"], node_principled.inputs["Base Color"])
+    links.new(node_displacement_t.outputs["Color"], node_displacement.inputs["Height"])
+    links.new(node_displacement.outputs["Displacement"], node_output.inputs["Displacement"])
+    links.new(node_normal.outputs["Color"], node_principled.inputs["Normal"])
+    links.new(node_roughness.outputs["Color"], node_principled.inputs["Roughness"])
+    links.new(node_coord.outputs["UV"], node_mapping.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_color.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_displacement_t.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_normal.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_roughness.inputs["Vector"])
+
+    #inputs
+    node_principled.inputs["Specular"].default_value = 0.33
+    node_displacement.inputs["Scale"].default_value = 0.05
+    node_color.image = bpy.data.images.load(project_path + "\\textures\\Porcelain\\Color.png", check_existing=True)
+    node_displacement_t.image = bpy.data.images.load(project_path + "\\textures\\Porcelain\\Displacement.png", check_existing=True)
+    node_normal.image = bpy.data.images.load(project_path + "\\textures\\Porcelain\\Normal.png", check_existing=True)
+    node_roughness.image = bpy.data.images.load(project_path + "\\textures\\Porcelain\\Roughness.png", check_existing=True)
 
     node_mapping.inputs["Scale"].default_value[0] = scale
     node_mapping.inputs["Scale"].default_value[1] = scale
