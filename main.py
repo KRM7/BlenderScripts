@@ -91,10 +91,6 @@ for i in range(num_images):
 
     #ADD LIGHTING
 
-    #print("Scene done.")
-    #scene_time = time.time()
-    #print("Scene generation time: %s seconds" % round(scene_time - gen_time, 2))
-
     #random hdri lighting
     hdri_idx = random.choice(range(len(hdris)))
     node_env.image = bpy.data.images.load(hdris[hdri_idx]["path"], check_existing = True)
@@ -103,8 +99,13 @@ for i in range(num_images):
     #adjust light strength based on material
     world.node_tree.nodes["Background"].inputs["Strength"].default_value += materials[mat_idx]["light_diff"]
 
-    
+    #print("Scene done.")
+    #scene_time = time.time()
+    #print("Scene generation time: %s seconds" % round(scene_time - gen_time, 2))
+
     print("Img:", i, "Env_id:", hdri_idx, "Mat_idx:", mat_idx)
+
+
     #RENDER
     render.cyclesRender(project_path + "\\imgs\\batch\\" + str(i), samples = 64, bounces = 32)
 
