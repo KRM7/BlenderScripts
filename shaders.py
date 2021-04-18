@@ -1,7 +1,12 @@
+project_path = "C:\\Users\\Krisztián\\source\\repos\\BlenderScripts"
+import sys
+sys.path.append(project_path)
+
 import bpy
+import random
 
 COLORS = {
-    "BLACK": (0.0, 0.0, 0.0, 1.0),
+    #"BLACK": (0.0, 0.0, 0.0, 1.0),
     "BLUE": (0.0, 0.0, 0.4, 1.0),
     "PINK": (0.4, 0.0, 0.3, 1.0),
     "GREEN": (0.0, 0.3, 0.0, 1.0),
@@ -13,7 +18,8 @@ COLORS = {
     "ORANGE": (0.8, 0.16, 0.0, 1.0)
 }
 
-def applyBase(mat, color):
+#custom
+def applyBase(mat, color, randomize = False):
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
     nodes.clear()
@@ -32,31 +38,36 @@ def applyBase(mat, color):
     links.new(node_noise.outputs["Fac"], node_bump.inputs["Height"])
 
     #noise texture shader
-    node_noise.inputs["Scale"].default_value = 10000.0
+    node_noise.inputs["Scale"].default_value = 10000.0 + random.uniform(-2000, 2000)
     node_noise.inputs["Detail"].default_value = 2.0
     node_noise.inputs["Roughness"].default_value = 0.0
     node_noise.inputs["Distortion"].default_value = 0.0
+    
     #bump shader
-    node_bump.inputs["Strength"].default_value = 0.1
-    node_bump.inputs["Distance"].default_value = 0.1
+    node_bump.inputs["Strength"].default_value = 0.1 + random.uniform(-0.05, 0.05)
+    node_bump.inputs["Distance"].default_value = 0.05 + random.uniform(-0.02, 0.02)
+    
     #principled shader
     node_principled.distribution = "GGX"
     node_principled.subsurface_method = "BURLEY"
-    node_principled.inputs["Base Color"].default_value = color
+    if randomize:
+        node_principled.inputs["Base Color"].default_value = (random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), 1.0)
+    else:
+        node_principled.inputs["Base Color"].default_value = color
     node_principled.inputs["Subsurface"].default_value = 0.0
-    node_principled.inputs["Subsurface Color"].default_value = color
     node_principled.inputs["Metallic"].default_value = 0.0
-    node_principled.inputs["Specular"].default_value = 0.3
+    node_principled.inputs["Specular"].default_value = 0.3 + random.uniform(-0.1, 0.1)
     node_principled.inputs["Specular Tint"].default_value = 0.0
-    node_principled.inputs["Roughness"].default_value = 0.3
+    node_principled.inputs["Roughness"].default_value = 0.4 + random.uniform(-0.1, 0.1)
     node_principled.inputs["Anisotropic"].default_value = 0.0
     node_principled.inputs["Anisotropic Rotation"].default_value = 0.0
     node_principled.inputs["Sheen"].default_value = 0.0
     node_principled.inputs["Sheen Tint"].default_value = 0.5
-    node_principled.inputs["Clearcoat"].default_value = 0.0
-    node_principled.inputs["Clearcoat Roughness"].default_value = 0.05
+    node_principled.inputs["Clearcoat"].default_value = 0.1 + random.uniform(-0.1, 0.1)
+    node_principled.inputs["Clearcoat Roughness"].default_value = 0.15 + random.uniform(-0.05, 0.05)
     node_principled.inputs["Transmission"].default_value = 0.0
     node_principled.inputs["Emission Strength"].default_value = 0.0
+
 
 def applyPlasticRough(mat, color):
     mat.use_nodes = True
@@ -81,9 +92,11 @@ def applyPlasticRough(mat, color):
     node_noise.inputs["Detail"].default_value = 2.0
     node_noise.inputs["Roughness"].default_value = 0.0
     node_noise.inputs["Distortion"].default_value = 0.0
+    
     #bump shader
     node_bump.inputs["Strength"].default_value = 1.0
     node_bump.inputs["Distance"].default_value = 0.2
+    
     #principled shader
     node_principled.distribution = "GGX"
     node_principled.subsurface_method = "BURLEY"
@@ -106,7 +119,8 @@ def applyPlasticRough(mat, color):
     node_principled.inputs["Emission Strength"].default_value = 2.0
     node_principled.inputs["Alpha"].default_value = 1.0
 
-def applyPlasticMatte(mat, color):
+
+def applyPlasticMatte(mat, color, randomize = False):
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
     nodes.clear()
@@ -125,34 +139,29 @@ def applyPlasticMatte(mat, color):
     links.new(node_noise.outputs["Fac"], node_bump.inputs["Height"])
 
     #noise texture shader
-    node_noise.inputs["Scale"].default_value = 1000.0
+    node_noise.inputs["Scale"].default_value = 2000.0
     node_noise.inputs["Detail"].default_value = 2.0
     node_noise.inputs["Roughness"].default_value = 0.0
     node_noise.inputs["Distortion"].default_value = 0.0
+    
     #bump shader
-    node_bump.inputs["Strength"].default_value = 0.3
-    node_bump.inputs["Distance"].default_value = 0.2
+    node_bump.inputs["Strength"].default_value = 0.1 + int(randomize)*random.uniform(0.0, 0.05)
+    node_bump.inputs["Distance"].default_value = 0.1 + int(randomize)*random.uniform(0.0, 0.05)
+   
     #principled shader
     node_principled.distribution = "MULTI_GGX"
     node_principled.subsurface_method = "BURLEY"
     node_principled.inputs["Base Color"].default_value = color
-    node_principled.inputs["Subsurface"].default_value = 0.0
-    node_principled.inputs["Subsurface Color"].default_value = color
-    node_principled.inputs["Metallic"].default_value = 0.0
-    node_principled.inputs["Specular"].default_value = 0.8
+    node_principled.inputs["Specular"].default_value = 0.4 + int(randomize)*random.uniform(0.0, 0.2)
     node_principled.inputs["Specular Tint"].default_value = 0.0
-    node_principled.inputs["Roughness"].default_value = 0.6
+    node_principled.inputs["Roughness"].default_value = 0.5 + int(randomize)*random.uniform(0.0, 0.15)
     node_principled.inputs["Anisotropic"].default_value = 0.2
-    node_principled.inputs["Anisotropic Rotation"].default_value = 0.0
-    node_principled.inputs["Sheen"].default_value = 0.0
     node_principled.inputs["Sheen Tint"].default_value = 0.0
-    node_principled.inputs["Clearcoat"].default_value = 0.0
-    node_principled.inputs["Clearcoat Roughness"].default_value = 0.0
-    node_principled.inputs["IOR"].default_value = 1.45
-    node_principled.inputs["Transmission"].default_value = 0.2
-    node_principled.inputs["Emission"].default_value = color
+    node_principled.inputs["Clearcoat"].default_value = 0.1 + int(randomize)*random.uniform(0.0, 0.2)
+    node_principled.inputs["Clearcoat Roughness"].default_value = 0.05 + int(randomize)*random.uniform(0.0, 0.05)
     node_principled.inputs["Emission Strength"].default_value = 0.0
     node_principled.inputs["Alpha"].default_value = 1.0
+
 
 def applyPlasticShiny(mat, color):
     mat.use_nodes = True
@@ -177,9 +186,11 @@ def applyPlasticShiny(mat, color):
     node_noise.inputs["Detail"].default_value = 2.0
     node_noise.inputs["Roughness"].default_value = 0.0
     node_noise.inputs["Distortion"].default_value = 0.0
+    
     #bump shader
     node_bump.inputs["Strength"].default_value = 0.02
     node_bump.inputs["Distance"].default_value = 0.05
+    
     #principled shader
     node_principled.distribution = "MULTI_GGX"
     node_principled.subsurface_method = "BURLEY"
@@ -199,7 +210,9 @@ def applyPlasticShiny(mat, color):
     node_principled.inputs["Transmission"].default_value = 0.0
     node_principled.inputs["Emission Strength"].default_value = 0.0
 
-def applyMetal(mat, color):
+
+#textures
+def applyAsphalt(mat, scale = 30.0):
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
     nodes.clear()
@@ -209,108 +222,317 @@ def applyMetal(mat, color):
     #create shader nodes
     node_output = nodes.new(type = "ShaderNodeOutputMaterial")
     node_principled = nodes.new(type = "ShaderNodeBsdfPrincipled")
-    node_bump = nodes.new(type = "ShaderNodeBump")
-    node_noise = nodes.new(type = "ShaderNodeTexNoise")
+
+    node_color = nodes.new(type = "ShaderNodeTexImage")
+    node_displacement_t = nodes.new(type = "ShaderNodeTexImage")
+    node_normal = nodes.new(type = "ShaderNodeTexImage")
+    node_roughness = nodes.new(type = "ShaderNodeTexImage")
+
+    node_displacement = nodes.new(type = "ShaderNodeDisplacement")
+    node_coord = nodes.new(type = "ShaderNodeTexCoord")
+    node_mapping = nodes.new(type = "ShaderNodeMapping")
 
     #connect shader nodes
     links.new(node_principled.outputs["BSDF"], node_output.inputs["Surface"])
-    links.new(node_bump.outputs["Normal"], node_principled.inputs["Normal"])
-    links.new(node_noise.outputs["Fac"], node_bump.inputs["Height"])
-
-    #noise texture shader
-    node_noise.inputs["Scale"].default_value = 2000.0
-    node_noise.inputs["Detail"].default_value = 2.0
-    node_noise.inputs["Roughness"].default_value = 0.0
-    node_noise.inputs["Distortion"].default_value = 0.0
-    #bump shader
-    node_bump.inputs["Strength"].default_value = 0.1
-    node_bump.inputs["Distance"].default_value = 0.05
-    #principled shader
-    node_principled.distribution = "MULTI_GGX"
-    node_principled.subsurface_method = "BURLEY"
-    node_principled.inputs["Base Color"].default_value = color
-    node_principled.inputs["Subsurface"].default_value = 0.0
-    node_principled.inputs["Subsurface Color"].default_value = (1.0, 1.0, 1.0, 1.0)
-    node_principled.inputs["Metallic"].default_value = 1.0
-    node_principled.inputs["Specular"].default_value = 0.5
-    node_principled.inputs["Specular Tint"].default_value = 0.0
-    node_principled.inputs["Roughness"].default_value = 0.25
-    node_principled.inputs["Anisotropic"].default_value = 0.0
-    node_principled.inputs["Anisotropic Rotation"].default_value = 0.0
-    node_principled.inputs["Sheen"].default_value = 0.0
-    node_principled.inputs["Sheen Tint"].default_value = 0.5
-    node_principled.inputs["Clearcoat"].default_value = 0.0
-    node_principled.inputs["Clearcoat Roughness"].default_value = 0.0
-    node_principled.inputs["IOR"].default_value = 1.45
-    node_principled.inputs["Transmission"].default_value = 0.0
-    node_principled.inputs["Emission"].default_value = color
-    node_principled.inputs["Emission Strength"].default_value = 0.0
-    node_principled.inputs["Alpha"].default_value = 1.0
-
-def applyWood(mat):
-    mat.use_nodes = True
-    nodes = mat.node_tree.nodes
-    nodes.clear()
-    links = mat.node_tree.links
-    links.clear()
-
-    #create shader nodes
-    node_output = nodes.new(type = "ShaderNodeOutputMaterial")
-    node_principled = nodes.new(type = "ShaderNodeBsdfPrincipled")
-    node_bump = nodes.new(type = "ShaderNodeBump")
-    node_noise = nodes.new(type = "ShaderNodeTexNoise")
-    node_vor = nodes.new(type = "ShaderNodeTexVoronoi")
-    node_wave = nodes.new(type = "ShaderNodeTexWave")
-    node_color = nodes.new(type = "ShaderNodeValToRGB")
-
-    #connect shader nodes
-    links.new(node_principled.outputs["BSDF"], node_output.inputs["Surface"])
-    links.new(node_bump.outputs["Normal"], node_principled.inputs["Normal"])
-    links.new(node_noise.outputs["Fac"], node_bump.inputs["Height"])
-    links.new(node_vor.outputs["Position"], node_wave.inputs["Vector"])
-    links.new(node_wave.outputs["Fac"], node_color.inputs["Fac"])
     links.new(node_color.outputs["Color"], node_principled.inputs["Base Color"])
+    links.new(node_displacement_t.outputs["Color"], node_displacement.inputs["Height"])
+    links.new(node_displacement.outputs["Displacement"], node_output.inputs["Displacement"])
+    links.new(node_normal.outputs["Color"], node_principled.inputs["Normal"])
+    links.new(node_roughness.outputs["Color"], node_principled.inputs["Roughness"])
+    links.new(node_coord.outputs["UV"], node_mapping.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_color.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_displacement_t.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_normal.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_roughness.inputs["Vector"])
 
-    #voronoi texture shader
-    node_vor.voronoi_dimensions = "2D"
-    node_vor.feature = "F2"
-    node_vor.distance = "MINKOWSKI"
-    node_vor.inputs["Scale"].default_value = 60.0
-    node_vor.inputs["Exponent"].default_value = 0.4
-    #wave texture shader
-    node_wave.wave_type = "BANDS"
-    node_wave.bands_direction = "DIAGONAL"
-    node_wave.wave_profile = "TRI"
-    node_wave.inputs["Scale"].default_value = 50.0
-    #color ramp
-    node_color.color_ramp.interpolation = "B_SPLINE"
-    node_color.color_ramp.elements[0].position = 0.21
-    node_color.color_ramp.elements[0].color = (0.16, 0.09, 0.05, 1.0)
-    node_color.color_ramp.elements[1].position = 0.76
-    node_color.color_ramp.elements[1].color = (0.42, 0.29, 0.15, 1.0)
-    #noise texture shader
-    node_noise.inputs["Scale"].default_value = 1000.0
-    node_noise.inputs["Detail"].default_value = 2.0
-    node_noise.inputs["Roughness"].default_value = 0.0
-    node_noise.inputs["Distortion"].default_value = 0.0
-    #bump shader
-    node_bump.inputs["Strength"].default_value = 1.0
-    node_bump.inputs["Distance"].default_value = 0.3
-    #principled shader
-    node_principled.distribution = "MULTI_GGX"
-    node_principled.subsurface_method = "BURLEY"
-    node_principled.inputs["Subsurface"].default_value = 0.0
-    node_principled.inputs["Metallic"].default_value = 0.0
-    node_principled.inputs["Specular"].default_value = 0.5
-    node_principled.inputs["Specular Tint"].default_value = 0.0
-    node_principled.inputs["Roughness"].default_value = 0.5
-    node_principled.inputs["Anisotropic"].default_value = 0.0
-    node_principled.inputs["Anisotropic Rotation"].default_value = 0.0
-    node_principled.inputs["Sheen"].default_value = 0.5
-    node_principled.inputs["Sheen Tint"].default_value = 0.0
-    node_principled.inputs["Clearcoat"].default_value = 0.5
-    node_principled.inputs["Clearcoat Roughness"].default_value = 0.1
-    node_principled.inputs["IOR"].default_value = 1.45
-    node_principled.inputs["Transmission"].default_value = 0.0
-    node_principled.inputs["Emission Strength"].default_value = 0.0
-    node_principled.inputs["Alpha"].default_value = 1.0
+    #inputs
+    node_principled.inputs["Specular"].default_value = 0.33
+    node_displacement.inputs["Scale"].default_value = 0.05
+    node_color.image = bpy.data.images.load(project_path + "\\textures\\Asphalt\\Color.png", check_existing=True)
+    node_displacement_t.image = bpy.data.images.load(project_path + "\\textures\\Asphalt\\Displacement.png", check_existing=True)
+    node_normal.image = bpy.data.images.load(project_path + "\\textures\\Asphalt\\Normal.png", check_existing=True)
+    node_roughness.image = bpy.data.images.load(project_path + "\\textures\\Asphalt\\Roughness.png", check_existing=True)
+
+    node_mapping.inputs["Scale"].default_value[0] = scale
+    node_mapping.inputs["Scale"].default_value[1] = scale
+    node_mapping.inputs["Scale"].default_value[2] = scale
+
+
+def applyTiles(mat, scale = 25.0):
+    mat.use_nodes = True
+    nodes = mat.node_tree.nodes
+    nodes.clear()
+    links = mat.node_tree.links
+    links.clear()
+
+    #create shader nodes
+    node_output = nodes.new(type = "ShaderNodeOutputMaterial")
+    node_principled = nodes.new(type = "ShaderNodeBsdfPrincipled")
+
+    node_color = nodes.new(type = "ShaderNodeTexImage")
+    node_displacement_t = nodes.new(type = "ShaderNodeTexImage")
+    node_normal = nodes.new(type = "ShaderNodeTexImage")
+    node_roughness = nodes.new(type = "ShaderNodeTexImage")
+
+    node_displacement = nodes.new(type = "ShaderNodeDisplacement")
+    node_coord = nodes.new(type = "ShaderNodeTexCoord")
+    node_mapping = nodes.new(type = "ShaderNodeMapping")
+
+    #connect shader nodes
+    links.new(node_principled.outputs["BSDF"], node_output.inputs["Surface"])
+    links.new(node_color.outputs["Color"], node_principled.inputs["Base Color"])
+    links.new(node_displacement_t.outputs["Color"], node_displacement.inputs["Height"])
+    links.new(node_displacement.outputs["Displacement"], node_output.inputs["Displacement"])
+    links.new(node_normal.outputs["Color"], node_principled.inputs["Normal"])
+    links.new(node_roughness.outputs["Color"], node_principled.inputs["Roughness"])
+    links.new(node_coord.outputs["UV"], node_mapping.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_color.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_displacement_t.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_normal.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_roughness.inputs["Vector"])
+
+    #inputs
+    node_principled.inputs["Specular"].default_value = 0.33
+    node_displacement.inputs["Scale"].default_value = 0.05
+    node_color.image = bpy.data.images.load(project_path + "\\textures\\Tiles\\Color.png", check_existing=True)
+    node_displacement_t.image = bpy.data.images.load(project_path + "\\textures\\Tiles\\Displacement.png", check_existing=True)
+    node_normal.image = bpy.data.images.load(project_path + "\\textures\\Tiles\\Normal.png", check_existing=True)
+    node_roughness.image = bpy.data.images.load(project_path + "\\textures\\Tiles\\Roughness.png", check_existing=True)
+
+    node_mapping.inputs["Scale"].default_value[0] = scale
+    node_mapping.inputs["Scale"].default_value[1] = scale
+    node_mapping.inputs["Scale"].default_value[2] = scale
+
+
+def applyPorcelain(mat, scale = 45.0):
+    mat.use_nodes = True
+    nodes = mat.node_tree.nodes
+    nodes.clear()
+    links = mat.node_tree.links
+    links.clear()
+
+    #create shader nodes
+    node_output = nodes.new(type = "ShaderNodeOutputMaterial")
+    node_principled = nodes.new(type = "ShaderNodeBsdfPrincipled")
+
+    node_color = nodes.new(type = "ShaderNodeTexImage")
+    node_displacement_t = nodes.new(type = "ShaderNodeTexImage")
+    node_normal = nodes.new(type = "ShaderNodeTexImage")
+    node_roughness = nodes.new(type = "ShaderNodeTexImage")
+
+    node_displacement = nodes.new(type = "ShaderNodeDisplacement")
+    node_coord = nodes.new(type = "ShaderNodeTexCoord")
+    node_mapping = nodes.new(type = "ShaderNodeMapping")
+
+    #connect shader nodes
+    links.new(node_principled.outputs["BSDF"], node_output.inputs["Surface"])
+    links.new(node_color.outputs["Color"], node_principled.inputs["Base Color"])
+    links.new(node_displacement_t.outputs["Color"], node_displacement.inputs["Height"])
+    links.new(node_displacement.outputs["Displacement"], node_output.inputs["Displacement"])
+    links.new(node_normal.outputs["Color"], node_principled.inputs["Normal"])
+    links.new(node_roughness.outputs["Color"], node_principled.inputs["Roughness"])
+    links.new(node_coord.outputs["UV"], node_mapping.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_color.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_displacement_t.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_normal.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_roughness.inputs["Vector"])
+
+    #inputs
+    node_principled.inputs["Specular"].default_value = 0.33
+    node_displacement.inputs["Scale"].default_value = 0.05
+    node_color.image = bpy.data.images.load(project_path + "\\textures\\Porcelain\\Color.png", check_existing=True)
+    node_displacement_t.image = bpy.data.images.load(project_path + "\\textures\\Porcelain\\Displacement.png", check_existing=True)
+    node_normal.image = bpy.data.images.load(project_path + "\\textures\\Porcelain\\Normal.png", check_existing=True)
+    node_roughness.image = bpy.data.images.load(project_path + "\\textures\\Porcelain\\Roughness.png", check_existing=True)
+
+    node_mapping.inputs["Scale"].default_value[0] = scale
+    node_mapping.inputs["Scale"].default_value[1] = scale
+    node_mapping.inputs["Scale"].default_value[2] = scale
+
+
+def applyMetal(mat, scale = 80.0): #render with Eevee
+    mat.use_nodes = True
+    nodes = mat.node_tree.nodes
+    nodes.clear()
+    links = mat.node_tree.links
+    links.clear()
+
+    #create shader nodes
+    node_output = nodes.new(type = "ShaderNodeOutputMaterial")
+    node_principled = nodes.new(type = "ShaderNodeBsdfPrincipled")
+
+    node_color = nodes.new(type = "ShaderNodeTexImage")
+    node_displacement_t = nodes.new(type = "ShaderNodeTexImage")
+    node_normal = nodes.new(type = "ShaderNodeTexImage")
+    node_roughness = nodes.new(type = "ShaderNodeTexImage")
+    node_metalness = nodes.new(type = "ShaderNodeTexImage")
+
+    node_displacement = nodes.new(type = "ShaderNodeDisplacement")
+    node_coord = nodes.new(type = "ShaderNodeTexCoord")
+    node_mapping = nodes.new(type = "ShaderNodeMapping")
+
+    #connect shader nodes
+    links.new(node_principled.outputs["BSDF"], node_output.inputs["Surface"])
+    links.new(node_color.outputs["Color"], node_principled.inputs["Base Color"])
+    links.new(node_displacement_t.outputs["Color"], node_displacement.inputs["Height"])
+    links.new(node_displacement.outputs["Displacement"], node_output.inputs["Displacement"])
+    links.new(node_normal.outputs["Color"], node_principled.inputs["Normal"])
+    links.new(node_roughness.outputs["Color"], node_principled.inputs["Roughness"])
+    links.new(node_metalness.outputs["Color"], node_principled.inputs["Metallic"])
+    links.new(node_coord.outputs["UV"], node_mapping.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_color.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_displacement_t.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_normal.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_roughness.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_metalness.inputs["Vector"])
+
+    #inputs
+    node_principled.inputs["Specular"].default_value = 0.33
+    node_displacement.inputs["Scale"].default_value = 0.05
+    node_color.image = bpy.data.images.load(project_path + "\\textures\\Metal\\Color.png", check_existing=True)
+    node_displacement_t.image = bpy.data.images.load(project_path + "\\textures\\Metal\\Displacement.png", check_existing=True)
+    node_normal.image = bpy.data.images.load(project_path + "\\textures\\Metal\\Normal.png", check_existing=True)
+    node_roughness.image = bpy.data.images.load(project_path + "\\textures\\Metal\\Roughness.png", check_existing=True)
+    node_metalness.image = bpy.data.images.load(project_path + "\\textures\\Metal\\Metalness.png", check_existing=True)
+
+    node_mapping.inputs["Scale"].default_value[0] = scale
+    node_mapping.inputs["Scale"].default_value[1] = scale
+    node_mapping.inputs["Scale"].default_value[2] = scale
+
+
+def applyPlastic1(mat, scale = 45.0):
+    mat.use_nodes = True
+    nodes = mat.node_tree.nodes
+    nodes.clear()
+    links = mat.node_tree.links
+    links.clear()
+
+    #create shader nodes
+    node_output = nodes.new(type = "ShaderNodeOutputMaterial")
+    node_principled = nodes.new(type = "ShaderNodeBsdfPrincipled")
+
+    node_color = nodes.new(type = "ShaderNodeTexImage")
+    node_displacement_t = nodes.new(type = "ShaderNodeTexImage")
+    node_normal = nodes.new(type = "ShaderNodeTexImage")
+    node_roughness = nodes.new(type = "ShaderNodeTexImage")
+
+    node_displacement = nodes.new(type = "ShaderNodeDisplacement")
+    node_coord = nodes.new(type = "ShaderNodeTexCoord")
+    node_mapping = nodes.new(type = "ShaderNodeMapping")
+
+    #connect shader nodes
+    links.new(node_principled.outputs["BSDF"], node_output.inputs["Surface"])
+    links.new(node_color.outputs["Color"], node_principled.inputs["Base Color"])
+    links.new(node_displacement_t.outputs["Color"], node_displacement.inputs["Height"])
+    links.new(node_displacement.outputs["Displacement"], node_output.inputs["Displacement"])
+    links.new(node_normal.outputs["Color"], node_principled.inputs["Normal"])
+    links.new(node_roughness.outputs["Color"], node_principled.inputs["Roughness"])
+    links.new(node_coord.outputs["UV"], node_mapping.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_color.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_displacement_t.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_normal.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_roughness.inputs["Vector"])
+
+    #inputs
+    node_principled.inputs["Specular"].default_value = 0.33
+    node_displacement.inputs["Scale"].default_value = 0.05
+    node_color.image = bpy.data.images.load(project_path + "\\textures\\Plastic1\\Color.png", check_existing=True)
+    node_displacement_t.image = bpy.data.images.load(project_path + "\\textures\\Plastic1\\Displacement.png", check_existing=True)
+    node_normal.image = bpy.data.images.load(project_path + "\\textures\\Plastic1\\Normal.png", check_existing=True)
+    node_roughness.image = bpy.data.images.load(project_path + "\\textures\\Plastic1\\Roughness.png", check_existing=True)
+
+    node_mapping.inputs["Scale"].default_value[0] = scale
+    node_mapping.inputs["Scale"].default_value[1] = scale
+    node_mapping.inputs["Scale"].default_value[2] = scale
+
+
+def applyPlastic2(mat, scale = 45.0):
+    mat.use_nodes = True
+    nodes = mat.node_tree.nodes
+    nodes.clear()
+    links = mat.node_tree.links
+    links.clear()
+
+    #create shader nodes
+    node_output = nodes.new(type = "ShaderNodeOutputMaterial")
+    node_principled = nodes.new(type = "ShaderNodeBsdfPrincipled")
+
+    node_color = nodes.new(type = "ShaderNodeTexImage")
+    node_displacement_t = nodes.new(type = "ShaderNodeTexImage")
+    node_normal = nodes.new(type = "ShaderNodeTexImage")
+    node_roughness = nodes.new(type = "ShaderNodeTexImage")
+
+    node_displacement = nodes.new(type = "ShaderNodeDisplacement")
+    node_coord = nodes.new(type = "ShaderNodeTexCoord")
+    node_mapping = nodes.new(type = "ShaderNodeMapping")
+
+    #connect shader nodes
+    links.new(node_principled.outputs["BSDF"], node_output.inputs["Surface"])
+    links.new(node_color.outputs["Color"], node_principled.inputs["Base Color"])
+    links.new(node_displacement_t.outputs["Color"], node_displacement.inputs["Height"])
+    links.new(node_displacement.outputs["Displacement"], node_output.inputs["Displacement"])
+    links.new(node_normal.outputs["Color"], node_principled.inputs["Normal"])
+    links.new(node_roughness.outputs["Color"], node_principled.inputs["Roughness"])
+    links.new(node_coord.outputs["UV"], node_mapping.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_color.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_displacement_t.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_normal.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_roughness.inputs["Vector"])
+
+    #inputs
+    node_principled.inputs["Specular"].default_value = 0.33
+    node_displacement.inputs["Scale"].default_value = 0.05
+    node_color.image = bpy.data.images.load(project_path + "\\textures\\Plastic2\\Color.png", check_existing=True)
+    node_displacement_t.image = bpy.data.images.load(project_path + "\\textures\\Plastic2\\Displacement.png", check_existing=True)
+    node_normal.image = bpy.data.images.load(project_path + "\\textures\\Plastic2\\Normal.png", check_existing=True)
+    node_roughness.image = bpy.data.images.load(project_path + "\\textures\\Plastic2\\Roughness.png", check_existing=True)
+
+    node_mapping.inputs["Scale"].default_value[0] = scale
+    node_mapping.inputs["Scale"].default_value[1] = scale
+    node_mapping.inputs["Scale"].default_value[2] = scale
+
+
+def applyPlastic3(mat, scale = 45.0):
+    mat.use_nodes = True
+    nodes = mat.node_tree.nodes
+    nodes.clear()
+    links = mat.node_tree.links
+    links.clear()
+
+    #create shader nodes
+    node_output = nodes.new(type = "ShaderNodeOutputMaterial")
+    node_principled = nodes.new(type = "ShaderNodeBsdfPrincipled")
+
+    node_color = nodes.new(type = "ShaderNodeTexImage")
+    node_displacement_t = nodes.new(type = "ShaderNodeTexImage")
+    node_normal = nodes.new(type = "ShaderNodeTexImage")
+    node_roughness = nodes.new(type = "ShaderNodeTexImage")
+
+    node_displacement = nodes.new(type = "ShaderNodeDisplacement")
+    node_coord = nodes.new(type = "ShaderNodeTexCoord")
+    node_mapping = nodes.new(type = "ShaderNodeMapping")
+
+    #connect shader nodes
+    links.new(node_principled.outputs["BSDF"], node_output.inputs["Surface"])
+    links.new(node_color.outputs["Color"], node_principled.inputs["Base Color"])
+    links.new(node_displacement_t.outputs["Color"], node_displacement.inputs["Height"])
+    links.new(node_displacement.outputs["Displacement"], node_output.inputs["Displacement"])
+    links.new(node_normal.outputs["Color"], node_principled.inputs["Normal"])
+    links.new(node_roughness.outputs["Color"], node_principled.inputs["Roughness"])
+    links.new(node_coord.outputs["UV"], node_mapping.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_color.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_displacement_t.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_normal.inputs["Vector"])
+    links.new(node_mapping.outputs["Vector"], node_roughness.inputs["Vector"])
+
+    #inputs
+    node_principled.inputs["Specular"].default_value = 0.33
+    node_displacement.inputs["Scale"].default_value = 0.05
+    node_color.image = bpy.data.images.load(project_path + "\\textures\\Plastic3\\Color.png", check_existing=True)
+    node_displacement_t.image = bpy.data.images.load(project_path + "\\textures\\Plastic3\\Displacement.png", check_existing=True)
+    node_normal.image = bpy.data.images.load(project_path + "\\textures\\Plastic3\\Normal.png", check_existing=True)
+    node_roughness.image = bpy.data.images.load(project_path + "\\textures\\Plastic3\\Roughness.png", check_existing=True)
+
+    node_mapping.inputs["Scale"].default_value[0] = scale
+    node_mapping.inputs["Scale"].default_value[1] = scale
+    node_mapping.inputs["Scale"].default_value[2] = scale
