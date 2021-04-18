@@ -37,16 +37,18 @@ print("Object generation time: %s seconds" % round(gen_time - start_time, 2))
 
 
 #ADD ENVIRONMENT
-bpy.ops.mesh.primitive_plane_add(size = 2000)
+bpy.ops.mesh.primitive_plane_add(size = 20000)
 ground = bpy.context.object
 mat = bpy.data.materials.new(name = "ground")
 shaders.applyPorcelain(mat)
 ground.data.materials.append(mat)
 
 hdris = [
-         project_path + "\\hdris\\lebombo.hdr",                 #light strength 0.1-0.6
-         project_path + "\\hdris\\old_bus_depot.hdr",           #light strength 0.3-1.5
-         project_path + "\\hdris\\peppermint_powerplant.hdr"    #light strength 0.3-1.5
+         project_path + "\\hdris\\peppermint_powerplant.hdr",   #light strength 0.3-1.5     #all fine no edges
+         project_path + "\\hdris\\reinforced_concrete.hdr",     #light strength 0.3-1.5     #some edges
+         project_path + "\\hdris\\lebombo.hdr",                 #light strength 0.1-0.6     #some edges
+         project_path + "\\hdris\\killesberg_park.hdr",         #light strength 0.1-0.6     #all fine no edges
+         project_path + "\\hdris\\paul_lobe_haus.hdr",          #light strength 0.1-0.6     #all fine no edges
         ]
 
 world = bpy.context.scene.world
@@ -71,6 +73,8 @@ for i in range(num_images):
 
 
     #ADD LIGHTING
+
+    #lamp lighting
     #utils.removeLights()
 
     #light_pos = random.uniform(0, 2*math.pi)
@@ -93,12 +97,13 @@ for i in range(num_images):
     #scene_time = time.time()
     #print("Scene generation time: %s seconds" % round(scene_time - gen_time, 2))
 
-    hdri_idx = random.choice(range(3))
+    #hdri lighting
+    hdri_idx = random.choice(range(len(hdris)))
     node_env.image = bpy.data.images.load(hdris[hdri_idx], check_existing = True)
-    if hdri_idx == 0:
-        world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.1 + random.uniform(0.0, 0.5)
+    if hdri_idx == 0 or hdri_idx == 1:
+        world.node_tree.nodes["Background"].inputs["Strength"].default_value = random.uniform(0.3, 1.5)
     else:
-        world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.3 + random.uniform(0.0, 1.2)
+        world.node_tree.nodes["Background"].inputs["Strength"].default_value = random.uniform(0.1, 0.6)
 
 
     #RENDER
