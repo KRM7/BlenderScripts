@@ -29,36 +29,52 @@ utils.removeCameras()
 hc = haircomb.Haircomb(missing_teeth = False)
 hc.createHaircomb()
 mat = hc.getMaterial()
-shaders.applyPlasticMatte(mat, shaders.COLORS["BLACK"])
+shaders.applyPlasticMatte(mat, (0.0, 0.0, 0.0, 1.0))
 
 print("\nObject done.")
 gen_time = time.time()
 print("Object generation time: %s seconds" % round(gen_time - start_time, 2))
 
 
-#ADD ENVIRONMENT
+#SETUP ENVIRONMENT
+#ground object
 bpy.ops.mesh.primitive_plane_add(size = 20000)
 ground = bpy.context.object
-mat = bpy.data.materials.new(name = "ground")
-shaders.applyPorcelain(mat)
-ground.data.materials.append(mat)
+#ground material
+gmat = bpy.data.materials.new(name = "ground")
+ground.data.materials.append(gmat)
 
-hdris = [
-         project_path + "\\hdris\\peppermint_powerplant.hdr",   #light strength 0.3-1.5     #all fine no edges
-         project_path + "\\hdris\\reinforced_concrete.hdr",     #light strength 0.3-1.5     #some edges
-         project_path + "\\hdris\\lebombo.hdr",                 #light strength 0.1-0.6     #some edges
-         project_path + "\\hdris\\killesberg_park.hdr",         #light strength 0.1-0.6     #all fine no edges
-         project_path + "\\hdris\\paul_lobe_haus.hdr",          #light strength 0.1-0.6     #all fine no edges
-        ]
+materials = [
+             {"f": shaders.applyAsphalt, "scale": 500, "light_diff": 0.0},
+             {"f": shaders.applyPorcelain, "scale": 45, "light_diff": -0.3},
+             {"f": shaders.applyMetal, "scale": 500, "light_diff": 0.3},
+             {"f": shaders.applyTiles, "scale": 400, "light_diff": 0.0}
+            ]
 
+#world, hdri
 world = bpy.context.scene.world
 node_env = world.node_tree.nodes.new(type = "ShaderNodeTexEnvironment")
 world.node_tree.links.new(node_env.outputs["Color"], world.node_tree.nodes["Background"].inputs["Color"])
 
+hdris = [
+         {"path": project_path + "\\hdris\\peppermint_powerplant.hdr", "light_min": 0.6, "light_max": 1.8},   #all fine no edges
+         {"path": project_path + "\\hdris\\reinforced_concrete.hdr", "light_min": 0.6, "light_max": 1.8},     #some edges
+         {"path": project_path + "\\hdris\\lebombo.hdr", "light_min": 0.4, "light_max": 0.9},                 #some edges
+         {"path": project_path + "\\hdris\\killesberg_park.hdr", "light_min": 0.4, "light_max": 0.9},         #all fine no edges
+         {"path": project_path + "\\hdris\\paul_lobe_haus.hdr", "light_min": 0.4, "light_max": 0.9},          #all fine no edges
+        ]
+
 
 #GENERATE IMAGES
-num_images = 50
+num_images = 10
 for i in range(num_images):
+
+    #ADD RANDOM GROUND MAT
+    mat_idx = random.choice(range(len(materials)))
+    materials[mat_idx]["f"](gmat, materials[mat_idx]["scale"])
+
+    #shaders.applyBase(gmat, random.sample(shaders.COLORS.values(), 1), randomize = True)
+    
     #ADD CAMERA
     utils.removeCameras()
 
@@ -74,7 +90,7 @@ for i in range(num_images):
 
     #ADD LIGHTING
 
-    #lamp lighting
+    #point lighting
     #utils.removeLights()
 
     #light_pos = random.uniform(0, 2*math.pi)
@@ -97,15 +113,16 @@ for i in range(num_images):
     #scene_time = time.time()
     #print("Scene generation time: %s seconds" % round(scene_time - gen_time, 2))
 
-    #hdri lighting
+    #random hdri lighting
     hdri_idx = random.choice(range(len(hdris)))
-    node_env.image = bpy.data.images.load(hdris[hdri_idx], check_existing = True)
-    if hdri_idx == 0 or hdri_idx == 1:
-        world.node_tree.nodes["Background"].inputs["Strength"].default_value = random.uniform(0.3, 1.5)
-    else:
-        world.node_tree.nodes["Background"].inputs["Strength"].default_value = random.uniform(0.1, 0.6)
+    node_env.image = bpy.data.images.load(hdris[hdri_idx]["path"], check_existing = True)
+    world.node_tree.nodes["Background"].inputs["Strength"].default_value = random.uniform(hdris[hdri_idx]["light_min"], hdris[hdri_idx]["light_max"])
 
+    #adjust light strength based on material
+    world.node_tree.nodes["Background"].inputs["Strength"].default_value += materials[mat_idx]["light_diff"]
 
+    
+    print("Img:", i, "Env_id:", hdri_idx, "Mat_idx:", mat_idx)
     #RENDER
     render.cyclesRender(project_path + "\\imgs\\batch\\" + str(i), samples = 64, bounces = 32)
 
