@@ -6,7 +6,7 @@ import bpy
 import mathutils
 import math
 import random
-import numpy
+import numpy as np
 import operators as op
 import utils
 from copy import deepcopy
@@ -148,8 +148,12 @@ class Haircomb:
                                             self.thickness/2))
         tooth_pos = deepcopy(tooth.location)
 
+        #params for bent teeth
+        bent_num = min(np.random.geometric(0.1), 20)                    #number of bent teeth
+        bent_start = random(range(0, self.tooth_count - bent_num + 1))  #index of first bent teeth
+
         #params for missing teeth
-        missing_num = min(numpy.random.geometric(0.2), self.tooth_count)
+        missing_num = min(np.random.geometric(0.2), self.tooth_count)
         missing_idx = random.sample(range(self.tooth_count), missing_num)
 
         #create cutter for missing teeth
@@ -159,7 +163,6 @@ class Haircomb:
                                              tooth_pos[1],
                                              tooth_pos[2]))
         cutter_base_x = cutter.location[0]
-        #TODO randomly move the 4 verts close to the base part of the haircomb in the X direction in a range [min, max]
 
         #add all of the teeth
         for i in range(self.tooth_count):
@@ -174,12 +177,13 @@ class Haircomb:
 
                 op.cut(self.base, cutter)
 
-                #reset pos of cutter
+                #reset pos of cutter    #this breaks things for some reason
                 #for v_i in range(4):
                 #    cutter.data.vertices[v_i].co.x = cutter_base_x
                 cutter.location[0] = cutter_base_x
            
-            #move to next teeth position ->y
+
+            #move to next teeth position -> y   x .|-> y
             tooth.location[1] += self.tooth_spacing + self.tooth_width
 
             cutter.location[1] = tooth.location[1]
