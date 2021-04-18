@@ -1,5 +1,1 @@
-random object generation with tolerances?
-
-improve metal, (wood shaders, shiny shaders for eevee, rough shader for eevee)
-
 manufacturing defect generation

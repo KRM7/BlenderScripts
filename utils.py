@@ -29,6 +29,7 @@ def placeCamera(target_coords, max_view_angle_x, max_view_angle_y, max_roll_angl
     cam_height = 100
     bpy.ops.object.camera_add(location = (0, 0, cam_height))
     camera = bpy.context.object
+    camera.data.clip_end = 1500
     bpy.context.scene.camera = camera
 
     #random camera view angle
