@@ -10,7 +10,7 @@ COLORS = {
     "BLUE": (0.0, 0.0, 0.4, 1.0),
     "PINK": (0.4, 0.0, 0.3, 1.0),
     "GREEN": (0.0, 0.3, 0.0, 1.0),
-    "RED": (0.4, 0.0, 0.0, 1.0),        #ok
+    "RED": (0.4, 0.0, 0.0, 1.0),
     "YELLOW": (0.6, 0.6, 0.0, 1.0),
     "WHITE": (0.8, 0.8, 0.8, 1.0),
     "GRAY": (0.1, 0.1, 0.1, 1.0),
@@ -120,7 +120,7 @@ def applyPlasticRough(mat, color):
     node_principled.inputs["Alpha"].default_value = 1.0
 
 
-def applyPlasticMatte(mat, color):
+def applyPlasticMatte(mat, color, randomize = False):
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
     nodes.clear()
@@ -139,34 +139,26 @@ def applyPlasticMatte(mat, color):
     links.new(node_noise.outputs["Fac"], node_bump.inputs["Height"])
 
     #noise texture shader
-    node_noise.inputs["Scale"].default_value = 1000.0
+    node_noise.inputs["Scale"].default_value = 2000.0
     node_noise.inputs["Detail"].default_value = 2.0
     node_noise.inputs["Roughness"].default_value = 0.0
     node_noise.inputs["Distortion"].default_value = 0.0
     
     #bump shader
-    node_bump.inputs["Strength"].default_value = 0.3
-    node_bump.inputs["Distance"].default_value = 0.2
+    node_bump.inputs["Strength"].default_value = 0.1 + int(randomize)*random.uniform(0.0, 0.05)
+    node_bump.inputs["Distance"].default_value = 0.1 + int(randomize)*random.uniform(0.0, 0.05)
    
     #principled shader
     node_principled.distribution = "MULTI_GGX"
     node_principled.subsurface_method = "BURLEY"
     node_principled.inputs["Base Color"].default_value = color
-    node_principled.inputs["Subsurface"].default_value = 0.0
-    node_principled.inputs["Subsurface Color"].default_value = color
-    node_principled.inputs["Metallic"].default_value = 0.0
-    node_principled.inputs["Specular"].default_value = 0.8
+    node_principled.inputs["Specular"].default_value = 0.4 + int(randomize)*random.uniform(0.0, 0.2)
     node_principled.inputs["Specular Tint"].default_value = 0.0
-    node_principled.inputs["Roughness"].default_value = 0.6
+    node_principled.inputs["Roughness"].default_value = 0.5 + int(randomize)*random.uniform(0.0, 0.15)
     node_principled.inputs["Anisotropic"].default_value = 0.2
-    node_principled.inputs["Anisotropic Rotation"].default_value = 0.0
-    node_principled.inputs["Sheen"].default_value = 0.0
     node_principled.inputs["Sheen Tint"].default_value = 0.0
-    node_principled.inputs["Clearcoat"].default_value = 0.0
-    node_principled.inputs["Clearcoat Roughness"].default_value = 0.0
-    node_principled.inputs["IOR"].default_value = 1.45
-    node_principled.inputs["Transmission"].default_value = 0.2
-    node_principled.inputs["Emission"].default_value = color
+    node_principled.inputs["Clearcoat"].default_value = 0.1 + int(randomize)*random.uniform(0.0, 0.2)
+    node_principled.inputs["Clearcoat Roughness"].default_value = 0.05 + int(randomize)*random.uniform(0.0, 0.05)
     node_principled.inputs["Emission Strength"].default_value = 0.0
     node_principled.inputs["Alpha"].default_value = 1.0
 
@@ -217,6 +209,7 @@ def applyPlasticShiny(mat, color):
     node_principled.inputs["Clearcoat Roughness"].default_value = 0.2
     node_principled.inputs["Transmission"].default_value = 0.0
     node_principled.inputs["Emission Strength"].default_value = 0.0
+
 
 #textures
 def applyAsphalt(mat, scale = 30.0):

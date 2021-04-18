@@ -29,7 +29,8 @@ utils.removeCameras()
 hc = haircomb.Haircomb(missing_teeth = False)
 hc.createHaircomb()
 mat = hc.getMaterial()
-shaders.applyPlasticMatte(mat, (0.0, 0.0, 0.0, 1.0))
+color = random.uniform(0.0, 0.004)
+shaders.applyPlasticMatte(mat, (color, color, color, 1.0), randomize = True)
 
 print("\nObject done.")
 gen_time = time.time()
@@ -45,9 +46,9 @@ gmat = bpy.data.materials.new(name = "ground")
 ground.data.materials.append(gmat)
 
 materials = [
-             {"f": shaders.applyAsphalt, "scale": 500, "light_diff": 0.0},
-             {"f": shaders.applyPorcelain, "scale": 45, "light_diff": -0.3},
-             {"f": shaders.applyMetal, "scale": 500, "light_diff": 0.3},
+             {"f": shaders.applyAsphalt, "scale": 700, "light_diff": -0.1},
+             {"f": shaders.applyPorcelain, "scale": 50, "light_diff": -0.3},
+             {"f": shaders.applyMetal, "scale": 500, "light_diff": 0.25},
              {"f": shaders.applyTiles, "scale": 400, "light_diff": 0.0}
             ]
 
@@ -57,16 +58,16 @@ node_env = world.node_tree.nodes.new(type = "ShaderNodeTexEnvironment")
 world.node_tree.links.new(node_env.outputs["Color"], world.node_tree.nodes["Background"].inputs["Color"])
 
 hdris = [
-         {"path": project_path + "\\hdris\\peppermint_powerplant.hdr", "light_min": 0.6, "light_max": 1.8},   #all fine no edges
+         {"path": project_path + "\\hdris\\peppermint_powerplant.hdr", "light_min": 0.4, "light_max": 1.5},
          {"path": project_path + "\\hdris\\reinforced_concrete.hdr", "light_min": 0.6, "light_max": 1.8},     #some edges
          {"path": project_path + "\\hdris\\lebombo.hdr", "light_min": 0.4, "light_max": 0.9},                 #some edges
-         {"path": project_path + "\\hdris\\killesberg_park.hdr", "light_min": 0.4, "light_max": 0.9},         #all fine no edges
-         {"path": project_path + "\\hdris\\paul_lobe_haus.hdr", "light_min": 0.4, "light_max": 0.9},          #all fine no edges
+         {"path": project_path + "\\hdris\\killesberg_park.hdr", "light_min": 0.25, "light_max": 0.75},
+         {"path": project_path + "\\hdris\\paul_lobe_haus.hdr", "light_min": 0.4, "light_max": 0.9},
         ]
 
 
 #GENERATE IMAGES
-num_images = 10
+num_images = 25
 for i in range(num_images):
 
     #ADD RANDOM GROUND MAT
@@ -89,25 +90,6 @@ for i in range(num_images):
 
 
     #ADD LIGHTING
-
-    #point lighting
-    #utils.removeLights()
-
-    #light_pos = random.uniform(0, 2*math.pi)
-    #light_distance = hc.width + random.uniform(-hc.width/3, hc.width/1.5)
-    #bpy.ops.object.light_add(type = "POINT", 
-    #                         location = (light_distance*math.sin(light_pos),
-    #                                     light_distance*math.cos(light_pos),
-    #                                     1.2*hc.width + random.uniform(-hc.width/3, hc.width/1.5))
-    #                        )
-    #light1 = bpy.context.object
-    #light1.data.color = (1.0 + random.uniform(-0.15, 0),
-    #                     0.85 + random.uniform(-0.15, 0.15),
-    #                     0.45 + random.uniform(-0.15, 0.15))
-    #light1.data.energy = 1E+6 + random.uniform(-0.3E+6, 2.5E+6)
-    #light1.data.specular_factor = 0.6 + random.uniform(-0.2, 0.2)
-    #light1.data.cycles.max_bounces = 64
-    #light1.data.shadow_soft_size = 0.1
 
     #print("Scene done.")
     #scene_time = time.time()
