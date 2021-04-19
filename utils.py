@@ -1,6 +1,5 @@
 import bpy, mathutils
-import math
-import random
+import math, random
 
 def removeCameras():
     for cam in bpy.data.cameras:
@@ -72,3 +71,16 @@ def randomExtendBoundingBox(bounding_box, max_x, max_y):
          )
 
     return bb
+
+def calcAngles(count, indexes, angle):
+    angles = {}
+    id_list = [*indexes]
+    middle = int(count/2) + 1
+
+    for i in range(count):
+        if i < middle:
+            angles[id_list[i]] = min((5+3*i)*math.pi/180, angle)
+        else:
+            angles[id_list[i]] = min((5+3*(count-1 - i))*math.pi/180, angle)
+
+    return angles
