@@ -5,30 +5,38 @@ def exactMerge(target, object):
     mod.operation = "UNION"
     mod.solver = "EXACT"
     mod.object = object
+
     bpy.context.view_layer.objects.active = target
     bpy.ops.object.modifier_apply(modifier = "merge")
+ 
     
 def fastMerge(target, object):
     mod = target.modifiers.new("fmerge", type = "BOOLEAN")
     mod.operation = "UNION"
     mod.solver = "FAST"
     mod.object = object
+
     bpy.context.view_layer.objects.active = target
     bpy.ops.object.modifier_apply(modifier = "fmerge")
+ 
     
 def cut(target, object):
     mod = target.modifiers.new("cut", type = "BOOLEAN")
     mod.operation = "DIFFERENCE"
     mod.object = object
+
     bpy.context.view_layer.objects.active = target
     bpy.ops.object.modifier_apply(modifier = "cut")
+
 
 def intersect(target, object):
     mod = target.modifiers.new("and", type = "BOOLEAN")
     mod.operation = "INTERSECT"
     mod.object = object
+
     bpy.context.view_layer.objects.active = target
     bpy.ops.object.modifier_apply(modifier = "and")
+
     
 def roundEdges(object, vgroup, radius, segments = 5):
     mod = object.modifiers.new("bevel", type = "BEVEL")
@@ -38,8 +46,10 @@ def roundEdges(object, vgroup, radius, segments = 5):
     mod.segments = segments
     mod.use_clamp_overlap = True
     mod.miter_outer = "MITER_ARC"
+
     bpy.context.view_layer.objects.active = object
     bpy.ops.object.modifier_apply(modifier = "bevel")
+ 
     
 def roundSharpEdges(object, radius, segments = 5, angle = 60):
     mod = object.modifiers.new("beveL", type = "BEVEL")
@@ -49,8 +59,10 @@ def roundSharpEdges(object, radius, segments = 5, angle = 60):
     mod.segments = segments
     mod.use_clamp_overlap = True
     mod.miter_outer = "MITER_ARC"
+
     bpy.context.view_layer.objects.active = object
     bpy.ops.object.modifier_apply(modifier = "bevel")
+
     
 def chamferEdges(object, vgroup, radius):
     mod = object.modifiers.new("chamfer", type = "BEVEL")
@@ -59,14 +71,17 @@ def chamferEdges(object, vgroup, radius):
     mod.width = radius
     mod.segments = 1
     mod.use_clamp_overlap = False
+
     bpy.context.view_layer.objects.active = object
     bpy.ops.object.modifier_apply(modifier = "chamfer")
+
 
 def removeDuplicateVerts(object):
     bpy.context.view_layer.objects.active = object
     bpy.ops.object.editmode_toggle()
     bpy.ops.mesh.remove_doubles()
     bpy.ops.object.editmode_toggle()
+ 
     
 def recalcNormals(object):
     bpy.context.view_layer.objects.active = object
@@ -74,11 +89,13 @@ def recalcNormals(object):
     bpy.ops.mesh.normals_make_consistent(inside=False)
     bpy.ops.object.editmode_toggle()
 
+
 def enableSmoothShading(object):
     bpy.context.view_layer.objects.active = object
     mesh = bpy.context.object.data
     for f in mesh.polygons:
         f.use_smooth = True
+
 
 def disableSmoothShading(object):
     bpy.context.view_layer.objects.active = object
@@ -86,11 +103,28 @@ def disableSmoothShading(object):
     for f in mesh.polygons:
         f.use_smooth = False
 
-def remesh(object, voxel_size = 0.1):
+
+def remesh(object, voxel_size = 0.1, adaptivity = 0.05):
     mod = object.modifiers.new("remesh", type = "REMESH")
     mod.mode = "VOXEL"
     mod.voxel_size = voxel_size
-    mod.adaptivity = 0.05
+    mod.adaptivity = adaptivity
     mod.use_smooth_shade = True
+
     bpy.context.view_layer.objects.active = object
     bpy.ops.object.modifier_apply(modifier = "remesh")
+
+
+def bend(object, origin, angle, l_limit, u_limit, axis = "Z"):
+    remesh(object, voxel_size = 0.25, adaptivity = 0.0)
+
+    mod = object.modifiers.new("bend", type = "SIMPLE_DEFORM")
+    mod.deform_method = "BEND"
+    mod.angle = angle       #in rads
+    mod.origin = origin     #object
+    mod.deform_axis = "Z"
+    mod.limits[0] = l_limit
+    mod.limits[1] = u_limit
+
+    bpy.context.view_layer.objects.active = object
+    bpy.ops.object.modifier_apply(modifier = "bend")
