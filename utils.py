@@ -75,12 +75,14 @@ def randomExtendBoundingBox(bounding_box, max_x, max_y):
 def calcAngles(count, indexes, angle):
     angles = {}
     id_list = [*indexes]
-    middle = int(count/2) + 1
+    middle = int(count/2)
 
     for i in range(count):
         if i < middle:
             angles[id_list[i]] = min((5+3*i)*math.pi/180, angle)
         else:
             angles[id_list[i]] = min((5+3*(count-1 - i))*math.pi/180, angle)
+        if not ((i == 0) or (i == (count - 1))):
+            angles[id_list[i]] += random.uniform(-1*math.pi/180, 1*math.pi/180)
 
     return angles
