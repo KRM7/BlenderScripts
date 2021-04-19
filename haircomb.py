@@ -154,19 +154,12 @@ class Haircomb:
         bent_start = random.randrange(0, self.tooth_count - bent_num + 1)
         bent_idx = range(bent_start, bent_start + bent_num)     #indexes of bent teeth
 
-        #bend_dir = random.uniform(0.0, 360.0)
-        bend_dir = 0
+        bend_dir = random.uniform(-30.0, 210.0)
         bend_dir = bend_dir*math.pi/180
 
-        #origin_p = random.uniform(0.2, 0.7)
-        origin_p = 0.2
-        origin_x = (origin_p - 0.5)*height_scaling_factor*self.tooth_height
+        origin_p = random.uniform(0.2, 0.7)
 
-        l_limit = origin_p
-        u_limit = origin_p + 0.2
-
-        #angle = random.uniform(7.0, 15.0)*math.pi/180
-        angle = 15.0*math.pi/180
+        angle = random.uniform(6.0, 15.0)*math.pi/180
         angles = utils.calcAngles(count = bent_num, indexes = bent_idx, angle = angle)
 
         #create origin for bending
@@ -189,20 +182,24 @@ class Haircomb:
         cutter_base_x = cutter.location[0]
         #endregion MISSING_TEETH
         
-        print("angle", angle*180/math.pi, "dir", bend_dir*180/math.pi, "pos", origin_p)
         #add all of the teeth
         for i in range(self.tooth_count):
-            if self.bent_teeth and (i in bent_idx):
+            if self.bent_teeth and (i in bent_idx) and not (self.missing_teeth and (i in missing_idx)):
                 bpy.context.view_layer.objects.active = tooth
                 bpy.ops.object.select_all(action = "DESELECT")
                 tooth.select_set(1)
                 bpy.ops.object.duplicate()
                 duplicate_tooth = bpy.context.object
 
-                axis.location = tooth.location + mathutils.Vector((origin_x, 0.0, 0.0)) #randomize a bit
-                axis.rotation_euler[0] = bend_dir   #randomize a bit
+                origin_temp = min(max(origin_p + random.uniform(-0.1, 0.1), 0.2), 0.7)
+                origin_x = (origin_temp - 0.5)*height_scaling_factor*self.tooth_height
+                l_limit = origin_temp
+                u_limit = origin_temp + 0.2
+
+                axis.location = tooth.location + mathutils.Vector((origin_x, 0.0, 0.0)) #randomize origin_p
+                axis.rotation_euler[0] = bend_dir + random.uniform(-10*math.pi/180, 10*math.pi/180)
                 
-                op.bend(object = duplicate_tooth, origin = axis, angle = angles[i], l_limit = l_limit, u_limit = u_limit)   #randomize angle a bit max 3 deg
+                op.bend(object = duplicate_tooth, origin = axis, angle = angles[i], l_limit = l_limit, u_limit = u_limit)
                 op.exactMerge(self.base, duplicate_tooth)
                 bpy.context.view_layer.objects.active = duplicate_tooth
                 bpy.ops.object.delete(confirm = False)
@@ -285,15 +282,3 @@ class Haircomb:
                 41/40*self.height,  21/40*self.width,  self.thickness,
                 41/40*self.height,  21/40*self.width,  0                #x8, y8, z8
                )
-
-#INIT
-bpy.ops.object.select_all(action = "SELECT")
-bpy.ops.object.delete()
-utils.removeMeshes()
-utils.removeMaterials()
-utils.removeLights()
-utils.removeCameras()
-
-#CREATE OBJECT
-hc = Haircomb(missing_teeth=False, bent_teeth = True)
-hc.createHaircomb()
