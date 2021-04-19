@@ -2,14 +2,13 @@ project_path = "C:\\Users\\Krisztián\\source\\repos\\BlenderScripts"
 import sys
 sys.path.append(project_path)
 
-import bpy
-import mathutils
+import bpy, mathutils
 import math
 import random
+from copy import deepcopy
 import numpy as np
 import operators as op
 import utils
-from copy import deepcopy
 
 class Haircomb:
     EPSILON = 1E-6
@@ -148,13 +147,38 @@ class Haircomb:
                                             self.thickness/2))
         tooth_pos = deepcopy(tooth.location)
 
+        #region BENT_TEETH
+
         #params for bent teeth
-        bent_num = min(np.random.geometric(0.1), 20)                    #number of bent teeth
-        bent_start = random(range(0, self.tooth_count - bent_num + 1))  #index of first bent teeth
+        bent_num = random.randrange(1, 21)
+        bent_start = random.randrange(0, self.tooth_count - bent_num + 1)
+        bent_idx = range(bent_start, bent_start + bent_num)     #indexes of bent teeth
+
+        #bend_dir = random.uniform(0.0, 360.0)
+        bend_dir = 0
+        bend_dir = bend_dir*math.pi/180
+
+        #origin_p = random.uniform(0.2, 0.7)
+        origin_p = 0.2
+        origin_x = (origin_p - 0.5)*height_scaling_factor*self.tooth_height
+
+        l_limit = origin_p
+        u_limit = origin_p + 0.2
+
+        #angle = random.uniform(7.0, 15.0)*math.pi/180
+        angle = 15.0*math.pi/180
+        angles = utils.calcAngles(count = bent_num, indexes = bent_idx, angle = angle)
+
+        #create origin for bending
+        bpy.ops.object.empty_add(type = "PLAIN_AXES")
+        axis = bpy.context.object
+        #endregion BENT_TEETH
+
+        #region MISSING_TEETH
 
         #params for missing teeth
-        missing_num = min(np.random.geometric(0.2), self.tooth_count)
-        missing_idx = random.sample(range(self.tooth_count), missing_num)
+        missing_num = min(np.random.geometric(0.2), self.tooth_count)       #number of missing teeth
+        missing_idx = random.sample(range(self.tooth_count), missing_num)   #indexes of missing teeth
 
         #create cutter for missing teeth
         bpy.ops.mesh.primitive_cube_add(scale = (self.tooth_height, 1.5*self.tooth_width, 1.5*self.thickness))
@@ -163,10 +187,28 @@ class Haircomb:
                                              tooth_pos[1],
                                              tooth_pos[2]))
         cutter_base_x = cutter.location[0]
-
+        #endregion MISSING_TEETH
+        
+        print("angle", angle*180/math.pi, "dir", bend_dir*180/math.pi, "pos", origin_p)
         #add all of the teeth
         for i in range(self.tooth_count):
-            op.fastMerge(self.base, tooth)
+            if self.bent_teeth and (i in bent_idx):
+                bpy.context.view_layer.objects.active = tooth
+                bpy.ops.object.select_all(action = "DESELECT")
+                tooth.select_set(1)
+                bpy.ops.object.duplicate()
+                duplicate_tooth = bpy.context.object
+
+                axis.location = tooth.location + mathutils.Vector((origin_x, 0.0, 0.0)) #randomize a bit
+                axis.rotation_euler[0] = bend_dir   #randomize a bit
+                
+                op.bend(object = duplicate_tooth, origin = axis, angle = angles[i], l_limit = l_limit, u_limit = u_limit)   #randomize angle a bit max 3 deg
+                op.exactMerge(self.base, duplicate_tooth)
+                bpy.context.view_layer.objects.active = duplicate_tooth
+                bpy.ops.object.delete(confirm = False)
+            else:
+                op.fastMerge(self.base, tooth)
+
             
             #cut teeth if missing/broken
             if(self.missing_teeth and (i in missing_idx)):
@@ -190,37 +232,38 @@ class Haircomb:
         
         bpy.data.objects.remove(tooth)
         bpy.data.objects.remove(cutter)
+        bpy.data.objects.remove(axis)
         #endregion TEETH
 
 
-        #region MIDDLE_PART
+        ##region MIDDLE_PART
 
-        #create middle part
-        scaling_factor = 6.0    #for the uneven rounding
-        bpy.ops.mesh.primitive_cube_add(scale = (self.middle_height/scaling_factor,
-                                                 self.middle_width,
-                                                 self.middle_thickness))
-        middle = bpy.context.object
-        middle.location += mathutils.Vector((self.middle_height/2 + self.base_height,
-                                             0,
-                                             self.thickness/2))
-        middle.scale[0] = scaling_factor
+        ##create middle part
+        #scaling_factor = 6.0    #for the uneven rounding
+        #bpy.ops.mesh.primitive_cube_add(scale = (self.middle_height/scaling_factor,
+        #                                         self.middle_width,
+        #                                         self.middle_thickness))
+        #middle = bpy.context.object
+        #middle.location += mathutils.Vector((self.middle_height/2 + self.base_height,
+        #                                     0,
+        #                                     self.thickness/2))
+        #middle.scale[0] = scaling_factor
 
-        #round the edges of the middle part
-        verts = middle.vertex_groups.new(name = "front")
-        verts.add(index = [4, 6, 5, 7], weight = 1, type = "REPLACE")
-        op.roundEdges(object = middle, vgroup = "front", radius = self.middle_thickness/2)
+        ##round the edges of the middle part
+        #verts = middle.vertex_groups.new(name = "front")
+        #verts.add(index = [4, 6, 5, 7], weight = 1, type = "REPLACE")
+        #op.roundEdges(object = middle, vgroup = "front", radius = self.middle_thickness/2)
 
-        op.fastMerge(self.base, middle)
-        bpy.data.objects.remove(middle)
-        #endregion MIDDLE_PART
+        #op.fastMerge(self.base, middle)
+        #bpy.data.objects.remove(middle)
+        ##endregion MIDDLE_PART
 
-        #remesh
-        op.remesh(self.base, voxel_size = 0.1)
+        ##remesh
+        #op.remesh(self.base, voxel_size = 0.1)
 
-        #add material
-        self.mat = bpy.data.materials.new(name = "HaircombMaterial")
-        self.base.data.materials.append(self.mat)
+        ##add material
+        #self.mat = bpy.data.materials.new(name = "HaircombMaterial")
+        #self.base.data.materials.append(self.mat)
 
 
     def getObject(self):
@@ -252,5 +295,5 @@ utils.removeLights()
 utils.removeCameras()
 
 #CREATE OBJECT
-hc = Haircomb(missing_teeth=True)
+hc = Haircomb(missing_teeth=False, bent_teeth = True)
 hc.createHaircomb()
