@@ -2,17 +2,9 @@ project_path = "C:\\Users\\Krisztián\\source\\repos\\BlenderScripts"
 import sys
 sys.path.append(project_path)
 
-import bpy
-import mathutils
-
-import math
-import random
-import time
-
-import utils
-import haircomb
-import shaders
-import render
+import bpy, mathutils
+import math, random, time
+import utils, shaders, render, haircomb
 
 start_time = time.time()
 
@@ -26,7 +18,7 @@ utils.removeCameras()
 
 
 #CREATE OBJECT
-hc = haircomb.Haircomb(missing_teeth = False)
+hc = haircomb.Haircomb(missing_teeth = False, bent_teeth = False)
 hc.createHaircomb()
 mat = hc.getMaterial()
 color = random.uniform(0.0, 0.004)
