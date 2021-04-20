@@ -1,9 +1,13 @@
 import bpy
 
 def cyclesRender(filepath, samples = 64, bounces = 32, denoising = False):
+    #renders an image using the cycles render engine
+
+    #select cycles
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
     
+    #device settings
     prefs = bpy.context.preferences.addons["cycles"].preferences
     prefs.compute_device_type = "CUDA"
     cuda, opencl = prefs.get_devices()
@@ -13,6 +17,7 @@ def cyclesRender(filepath, samples = 64, bounces = 32, denoising = False):
         device["use"] = 1
     scene.cycles.feature_set = "EXPERIMENTAL"
 
+    #render settings
     scene.cycles.samples = samples
     scene.cycles.max_bounces = bounces
     scene.cycles.debug_use_spatial_splits = True
@@ -30,7 +35,7 @@ def cyclesRender(filepath, samples = 64, bounces = 32, denoising = False):
     scene.render.image_settings.quality = 90
     scene.render.filepath = filepath
     
-    #denoising
+    #denoiser settings
     if denoising:
         scene.cycles.use_denoising = True
         scene.cycles.denoiser = "OPTIX"
@@ -40,31 +45,36 @@ def cyclesRender(filepath, samples = 64, bounces = 32, denoising = False):
 
     bpy.ops.render.render(write_still = True)
 
+
 def eeveeRender(filepath, samples = 64):
+    #renders an image using the eevee render engine
+
+    #select eevee
     scene = bpy.context.scene
     scene.render.engine  = "BLENDER_EEVEE"
+
     scene.eevee.taa_render_samples = samples
     
-    #ambient occlusion
+    #ambient occlusion settings
     scene.eevee.use_gtao = True
     scene.eevee.gtao_distance = 50.0
     scene.eevee.gtao_factor = 0.4
     
-    #screen space reflections
+    #screen space reflections settings
     scene.eevee.use_ssr = True
     scene.eevee.ssr_quality = 1.0
     scene.eevee.ssr_max_roughness = 1.0
     scene.eevee.ssr_thickness = 0.1
     scene.eevee.ssr_border_fade = 0.1
     
-    #shadows
+    #shadow settings
     scene.eevee.shadow_cube_size = "4096"
     scene.eevee.shadow_cascade_size = "256"
     scene.eevee.use_shadow_high_bitdepth = True
     scene.eevee.use_soft_shadows = True
     scene.eevee.light_threshold = 0.01
     
-    #indirect lighting
+    #indirect lighting settings
     scene.eevee.gi_diffuse_bounces = 8
     scene.eevee.gi_cubemap_resolution = "1024"
     scene.eevee.gi_visibility_resolution = "32"

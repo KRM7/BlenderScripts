@@ -2,29 +2,40 @@ import bpy, mathutils
 import math, random
 
 def removeCameras():
+    #removes every camera
     for cam in bpy.data.cameras:
         bpy.data.cameras.remove(cam)
 
+
 def removeLights():
+    #removes all lights
     for light in bpy.data.lights:
         bpy.data.lights.remove(light)
 
+
 def removeMaterials():
+    #removes all materials
     for mat in bpy.data.materials:
         bpy.data.materials.remove(mat)
 
+
 def removeMeshes():
+    #removes all meshes
     for mesh in bpy.data.meshes:
         bpy.data.meshes.remove(mesh)
 
+
 def pointCameraTo(cam, target):
+    #points camera towards the target coordinates
     cam_pos = cam.matrix_world.to_translation()
     
     dir = target - cam_pos
     rot = dir.to_track_quat("-Z", "Y")
     cam.rotation_euler = rot.to_euler()
 
+
 def placeCamera(target_coords, max_view_angle_x, max_view_angle_y, max_roll_angle):
+    #places a camera randomly with the target_coords always being in frame
     cam_height = 100
     bpy.ops.object.camera_add(location = (0, 0, cam_height))
     camera = bpy.context.object
@@ -53,7 +64,9 @@ def placeCamera(target_coords, max_view_angle_x, max_view_angle_y, max_roll_angl
 
     return camera
 
+
 def randomExtendBoundingBox(bounding_box, max_x, max_y):
+    #randomly extends bounding box coordinates in the x and y direction
     x_pos = random.uniform(0, max_x)
     x_neg = random.uniform(0, max_x)
     y_pos = random.uniform(0, max_y)
@@ -72,7 +85,9 @@ def randomExtendBoundingBox(bounding_box, max_x, max_y):
 
     return bb
 
+
 def calcAngles(count, indexes, angle):
+    #calculates angles for the bent teeth of the haircomb
     angles = {}
     id_list = [*indexes]
     middle = int(count/2)
