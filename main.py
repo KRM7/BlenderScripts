@@ -6,8 +6,13 @@ import bpy, mathutils
 import math, random, time
 import utils, shaders, render, haircomb
 
-start_time = time.time()
+num_objects = 1
+num_images = 20
+missing_teeth = False
+bent_teeth = False
 
+
+start_time = time.time()
 #INIT
 bpy.ops.object.select_all(action = "SELECT")
 bpy.ops.object.delete()
@@ -17,29 +22,13 @@ utils.removeLights()
 utils.removeCameras()
 
 
-#CREATE OBJECT
-hc = haircomb.Haircomb(missing_teeth = False, bent_teeth = False)
-hc.createHaircomb()
-mat = hc.getMaterial()
-color = random.uniform(0.0, 0.004)
-shaders.applyPlasticMatte(mat, (color, color, color, 1.0), randomize = True)
-
-print("\nObject done.")
-gen_time = time.time()
-print("Object generation time: %s seconds" % round(gen_time - start_time, 2))
-
-
 #SETUP ENVIRONMENT
-#ground object
-bpy.ops.mesh.primitive_plane_add(size = 20000)
-ground = bpy.context.object
 #ground material
 gmat = bpy.data.materials.new(name = "ground")
-ground.data.materials.append(gmat)
 
 materials = [
              {"f": shaders.applyAsphalt, "scale": 700, "light_diff": -0.1},
-             {"f": shaders.applyPorcelain, "scale": 50, "light_diff": -0.3},
+             {"f": shaders.applyPorcelain, "scale": 500, "light_diff": -0.3},
              {"f": shaders.applyMetal, "scale": 500, "light_diff": 0.25},
              {"f": shaders.applyTiles, "scale": 400, "light_diff": 0.0}
             ]
@@ -57,52 +46,65 @@ hdris = [
          {"path": project_path + "\\hdris\\paul_lobe_haus.hdr", "light_min": 0.4, "light_max": 0.9},
         ]
 
+print("Environment done.")
 
-#GENERATE IMAGES
-num_images = 25
-for i in range(num_images):
 
-    #ADD RANDOM GROUND MAT
-    mat_idx = random.choice(range(len(materials)))
-    materials[mat_idx]["f"](gmat, materials[mat_idx]["scale"])
-
-    #shaders.applyBase(gmat, random.sample(shaders.COLORS.values(), 1), randomize = True)
+#GENERATE OBJECTS
+for obj in range(num_objects):
+    #INIT
+    bpy.ops.object.select_all(action = "SELECT")
+    bpy.ops.object.delete()
+    utils.removeMeshes()
     
-    #ADD CAMERA
-    utils.removeCameras()
+    #CREATE GROUND OBJECT
+    bpy.ops.mesh.primitive_plane_add(size = 20000)
+    ground = bpy.context.object
+    ground.data.materials.append(gmat)
+    
+    #CREATE OBJECT
+    hc = haircomb.Haircomb(missing_teeth = missing_teeth, bent_teeth = bent_teeth)
+    hc.createHaircomb()
+    mat = hc.getMaterial()
+    color = random.uniform(0.0, 0.005)
+    shaders.applyPlasticMatte(mat, (color, color, color, 1.0), randomize = True)
 
-    cam_max_view_angle_x = 60
-    cam_max_view_angle_y = 30
-    cam_max_roll_angle = 15
+    print("Object" + str(obj) + " generation done.")
 
-    coords = hc.getBoundingBox()
-    coords = utils.randomExtendBoundingBox(bounding_box = coords, max_x = hc.width/6, max_y = hc.width/4)
+    #GENERATE IMAGES
+    for img in range(num_images):
 
-    camera = utils.placeCamera(coords, cam_max_view_angle_x, cam_max_view_angle_y, cam_max_roll_angle)
+        #ADD RANDOM GROUND MAT
+        mat_idx = random.choice(range(len(materials)))
+        materials[mat_idx]["f"](gmat, materials[mat_idx]["scale"])
 
+        #shaders.applyBase(gmat, random.sample(shaders.COLORS.values(), 1), randomize = True)
+    
+        #region ADD CAMERA
+        utils.removeCameras()
 
-    #ADD LIGHTING
+        cam_max_view_angle_x = 60
+        cam_max_view_angle_y = 30
+        cam_max_roll_angle = 15
 
-    #random hdri lighting
-    hdri_idx = random.choice(range(len(hdris)))
-    node_env.image = bpy.data.images.load(hdris[hdri_idx]["path"], check_existing = True)
-    world.node_tree.nodes["Background"].inputs["Strength"].default_value = random.uniform(hdris[hdri_idx]["light_min"], hdris[hdri_idx]["light_max"])
+        coords = hc.getBoundingBox()
+        coords = utils.randomExtendBoundingBox(bounding_box = coords, max_x = hc.width/6, max_y = hc.width/4)
 
-    #adjust light strength based on material
-    world.node_tree.nodes["Background"].inputs["Strength"].default_value += materials[mat_idx]["light_diff"]
+        camera = utils.placeCamera(coords, cam_max_view_angle_x, cam_max_view_angle_y, cam_max_roll_angle)
+        #endregion
 
-    #print("Scene done.")
-    #scene_time = time.time()
-    #print("Scene generation time: %s seconds" % round(scene_time - gen_time, 2))
+        #region ADD LIGHTING
 
-    print("Img:", i, "Env_id:", hdri_idx, "Mat_idx:", mat_idx)
+        #random hdri lighting
+        hdri_idx = random.choice(range(len(hdris)))
+        node_env.image = bpy.data.images.load(hdris[hdri_idx]["path"], check_existing = True)
+        world.node_tree.nodes["Background"].inputs["Strength"].default_value = random.uniform(hdris[hdri_idx]["light_min"], hdris[hdri_idx]["light_max"])
 
+        #adjust light strength based on material
+        world.node_tree.nodes["Background"].inputs["Strength"].default_value += materials[mat_idx]["light_diff"]
+        #endregion
 
-    #RENDER
-    render.cyclesRender(project_path + "\\imgs\\batch\\" + str(i), samples = 64, bounces = 32)
+        #RENDER
+        render.cyclesRender(project_path + "\\imgs\\batch\\" + str(obj) + "_" + str(img), samples = 64, bounces = 32)
 
-    #print("Render done.")
-    #render_time = time.time()
-    #print("Render time: %s seconds" % round(render_time - scene_time, 2))
 
 print("Overall time: %s seconds" % round((time.time() - start_time), 2))
