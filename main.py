@@ -11,6 +11,7 @@ num_images = 20
 missing_teeth = False
 bent_teeth = False
 warping = False
+contamination = False
 
 
 start_time = time.time()
@@ -41,8 +42,8 @@ world.node_tree.links.new(node_env.outputs["Color"], world.node_tree.nodes["Back
 
 hdris = [
          {"path": project_path + "\\hdris\\peppermint_powerplant.hdr", "light_min": 0.4, "light_max": 1.5},
-         {"path": project_path + "\\hdris\\reinforced_concrete.hdr", "light_min": 0.6, "light_max": 1.8},     #some edges
-         {"path": project_path + "\\hdris\\lebombo.hdr", "light_min": 0.4, "light_max": 0.9},                 #some edges
+         {"path": project_path + "\\hdris\\reinforced_concrete.hdr", "light_min": 0.6, "light_max": 1.8},
+         {"path": project_path + "\\hdris\\lebombo.hdr", "light_min": 0.4, "light_max": 0.9},
          {"path": project_path + "\\hdris\\killesberg_park.hdr", "light_min": 0.25, "light_max": 0.75},
          {"path": project_path + "\\hdris\\paul_lobe_haus.hdr", "light_min": 0.4, "light_max": 0.9},
         ]
@@ -65,16 +66,16 @@ for obj in range(num_objects):
     #CREATE OBJECT
     hc = haircomb.Haircomb(missing_teeth = missing_teeth, bent_teeth = bent_teeth, warping = warping)
     hc.createHaircomb()
-    mat = hc.getMaterial()
-    color = random.uniform(0.0, 0.005)
-    shaders.applyPlasticMatte(mat, (color, color, color, 1.0), randomize = True)
 
     print("Object" + str(obj) + " generation done.")
 
     #GENERATE IMAGES
     for img in range(num_images):
 
-        #ADD RANDOM GROUND MAT
+        #ADD RANDOM MATERIALS
+        color = random.uniform(0.0, 0.005)
+        shaders.applyPlasticMatte(hc.getMaterial(), (color, color, color, 1.0), randomize = True, contamination = contamination)
+
         mat_idx = random.choice(range(len(materials)))
         materials[mat_idx]["f"](gmat, materials[mat_idx]["scale"])
 
