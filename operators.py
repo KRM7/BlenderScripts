@@ -122,7 +122,7 @@ def bend(object, origin, angle, l_limit, u_limit, axis = "Z"):
     mod.deform_method = "BEND"
     mod.angle = angle       #in rads
     mod.origin = origin     #object
-    mod.deform_axis = "Z"
+    mod.deform_axis = axis
     mod.limits[0] = l_limit
     mod.limits[1] = u_limit
 
