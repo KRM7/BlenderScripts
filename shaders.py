@@ -3,7 +3,7 @@ import sys
 sys.path.append(project_path)
 
 import bpy
-import random
+import random, math
 
 COLORS = {
     #"BLACK": (0.0, 0.0, 0.0, 1.0),
@@ -120,7 +120,7 @@ def applyPlasticRough(mat, color):
     node_principled.inputs["Alpha"].default_value = 1.0
 
 
-def applyPlasticMatte(mat, color, randomize = False):
+def applyPlasticMatte(mat, color, randomize = False, contamination = False):
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
     nodes.clear()
@@ -152,7 +152,7 @@ def applyPlasticMatte(mat, color, randomize = False):
     node_principled.distribution = "MULTI_GGX"
     node_principled.subsurface_method = "BURLEY"
     node_principled.inputs["Base Color"].default_value = color
-    node_principled.inputs["Specular"].default_value = 0.2 + int(randomize)*random.uniform(0.0, 0.2)
+    node_principled.inputs["Specular"].default_value = 0.15 + int(randomize)*random.uniform(0.0, 0.1)
     node_principled.inputs["Specular Tint"].default_value = 0.0
     node_principled.inputs["Roughness"].default_value = 0.5 + int(randomize)*random.uniform(0.0, 0.15)
     node_principled.inputs["Anisotropic"].default_value = 0.2
@@ -161,6 +161,24 @@ def applyPlasticMatte(mat, color, randomize = False):
     node_principled.inputs["Clearcoat Roughness"].default_value = 0.05 + int(randomize)*random.uniform(0.0, 0.05)
     node_principled.inputs["Emission Strength"].default_value = 0.0
     node_principled.inputs["Alpha"].default_value = 1.0
+
+    #contamination
+    if contamination:
+        node_coord = nodes.new(type = "ShaderNodeTexCoord")
+        node_mapping = nodes.new(type = "ShaderNodeMapping")
+        node_color = nodes.new(type = "ShaderNodeTexImage")
+
+        links.new(node_coord.outputs["Object"], node_mapping.inputs["Vector"])
+        links.new(node_mapping.outputs["Vector"], node_color.inputs["Vector"])
+        links.new(node_color.outputs["Color"], node_principled.inputs["Base Color"])
+
+        node_color.image = bpy.data.images.load(project_path + "\\textures\\Contamination.png", check_existing=True)
+        node_mapping.inputs["Scale"].default_value[0] = 0.01 + random.uniform(0, 0.005)
+        node_mapping.inputs["Scale"].default_value[1] = 0.01 + random.uniform(0, 0.005)
+        node_mapping.inputs["Scale"].default_value[2] = 0.01 + random.uniform(0, 0.005)
+        node_mapping.inputs["Location"].default_value[0] = random.uniform(-2, 2)
+        node_mapping.inputs["Location"].default_value[1] = random.uniform(-2, 2)
+        node_mapping.inputs["Rotation"].default_value[2] = random.uniform(0, 2*math.pi)
 
 
 def applyPlasticShiny(mat, color):
