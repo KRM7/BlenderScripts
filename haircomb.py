@@ -21,7 +21,8 @@ class Haircomb:
                  tooth_height = 20.0,
                  tooth_count = 46,
                  missing_teeth = False,
-                 bent_teeth = False):
+                 bent_teeth = False,
+                 warping = False):
         #set parameters (mm)
         self.width = width                  #overall width of haircomb
         self.thickness = thickness          #overall thickness of haircomb
@@ -31,6 +32,7 @@ class Haircomb:
         self.tooth_count = tooth_count      #number of teeth of the haircomb
         self.missing_teeth = missing_teeth
         self.bent_teeth = bent_teeth
+        self.warping = warping
         #derived parameters
         self.__calcDerivedParams()
 
@@ -154,10 +156,10 @@ class Haircomb:
         bent_start = random.randrange(0, self.tooth_count - bent_num + 1)
         bent_idx = range(bent_start, bent_start + bent_num)     #indexes of bent teeth
 
-        bend_dir = random.uniform(-30.0, 210.0)
+        bend_dir = random.uniform(-20.0, 200.0)
         bend_dir = bend_dir*math.pi/180
 
-        origin_p = random.uniform(0.2, 0.7)
+        origin_p = random.uniform(0.2, 0.6)
 
         angle = random.uniform(6.0, 15.0)*math.pi/180
         angles = utils.calcAngles(count = bent_num, indexes = bent_idx, angle = angle)
@@ -184,47 +186,56 @@ class Haircomb:
         
         #add all of the teeth
         for i in range(self.tooth_count):
-            if self.bent_teeth and (i in bent_idx) and not (self.missing_teeth and (i in missing_idx)):
+            if self.bent_teeth and (i in bent_idx) and not (self.missing_teeth and (i in missing_idx)): #bent teeth
                 bpy.context.view_layer.objects.active = tooth
                 bpy.ops.object.select_all(action = "DESELECT")
                 tooth.select_set(1)
                 bpy.ops.object.duplicate()
                 duplicate_tooth = bpy.context.object
 
-                origin_temp = min(max(origin_p + random.uniform(-0.1, 0.1), 0.2), 0.7)
+                origin_temp = min(max(origin_p + random.uniform(-0.1, 0.1), 0.2), 0.6)
                 origin_x = (origin_temp - 0.5)*height_scaling_factor*self.tooth_height
                 l_limit = origin_temp
-                u_limit = origin_temp + 0.2
+                u_limit = origin_temp + 0.15 + random.uniform(0.0, 0.1)
 
-                axis.location = tooth.location + mathutils.Vector((origin_x, 0.0, 0.0)) #randomize origin_p
+                axis.location = tooth.location + mathutils.Vector((origin_x, 0.0, 0.0))
                 axis.rotation_euler[0] = bend_dir + random.uniform(-10*math.pi/180, 10*math.pi/180)
                 
                 op.bend(object = duplicate_tooth, origin = axis, angle = angles[i], l_limit = l_limit, u_limit = u_limit)
                 op.exactMerge(self.base, duplicate_tooth)
-                bpy.context.view_layer.objects.active = duplicate_tooth
-                bpy.ops.object.delete(confirm = False)
-            else:
-                op.fastMerge(self.base, tooth)
 
-            
-            #cut teeth if missing/broken
-            if(self.missing_teeth and (i in missing_idx)):
-                #randomize pos of cutter
+                bpy.context.view_layer.objects.active = duplicate_tooth
+                bpy.ops.object.delete()
+
+            elif self.missing_teeth and (i in missing_idx): #missing teeth
+                bpy.context.view_layer.objects.active = tooth
+                bpy.ops.object.select_all(action = "DESELECT")
+                tooth.select_set(1)
+                bpy.ops.object.duplicate()
+                duplicate_tooth = bpy.context.object
+
+                #cut copied tooth
                 cutter.location[0] += random.uniform(0.0, self.tooth_height/5)
+                vert_base_x = cutter.data.vertices[0].co.x
                 for v_i in range(4):
                     cutter.data.vertices[v_i].co.x += random.uniform(-self.tooth_height/40, self.tooth_height/40)
 
-                op.cut(self.base, cutter)
+                op.cut(duplicate_tooth, cutter)
 
-                #reset pos of cutter    #this breaks things for some reason
-                #for v_i in range(4):
-                #    cutter.data.vertices[v_i].co.x = cutter_base_x
+                for v_i in range(4):
+                    cutter.data.vertices[v_i].co.x = vert_base_x
                 cutter.location[0] = cutter_base_x
-           
 
-            #move to next teeth position -> y   x .|-> y
+                op.fastMerge(self.base, duplicate_tooth)
+
+                bpy.context.view_layer.objects.active = duplicate_tooth
+                bpy.ops.object.delete()
+
+            else:   #normal teeth
+                op.fastMerge(self.base, tooth)
+
+            #move to next teeth position
             tooth.location[1] += self.tooth_spacing + self.tooth_width
-
             cutter.location[1] = tooth.location[1]
         
         bpy.data.objects.remove(tooth)
@@ -233,34 +244,48 @@ class Haircomb:
         #endregion TEETH
 
 
-        ##region MIDDLE_PART
+        #region MIDDLE_PART
 
-        ##create middle part
-        #scaling_factor = 6.0    #for the uneven rounding
-        #bpy.ops.mesh.primitive_cube_add(scale = (self.middle_height/scaling_factor,
-        #                                         self.middle_width,
-        #                                         self.middle_thickness))
-        #middle = bpy.context.object
-        #middle.location += mathutils.Vector((self.middle_height/2 + self.base_height,
-        #                                     0,
-        #                                     self.thickness/2))
-        #middle.scale[0] = scaling_factor
+        #create middle part
+        scaling_factor = 6.0    #for the uneven rounding
+        bpy.ops.mesh.primitive_cube_add(scale = (self.middle_height/scaling_factor,
+                                                 self.middle_width,
+                                                 self.middle_thickness))
+        middle = bpy.context.object
+        middle.location += mathutils.Vector((self.middle_height/2 + self.base_height,
+                                             0,
+                                             self.thickness/2))
+        middle.scale[0] = scaling_factor
 
-        ##round the edges of the middle part
-        #verts = middle.vertex_groups.new(name = "front")
-        #verts.add(index = [4, 6, 5, 7], weight = 1, type = "REPLACE")
-        #op.roundEdges(object = middle, vgroup = "front", radius = self.middle_thickness/2)
+        #round the edges of the middle part
+        verts = middle.vertex_groups.new(name = "front")
+        verts.add(index = [4, 6, 5, 7], weight = 1, type = "REPLACE")
+        op.roundEdges(object = middle, vgroup = "front", radius = self.middle_thickness/2)
 
-        #op.fastMerge(self.base, middle)
-        #bpy.data.objects.remove(middle)
-        ##endregion MIDDLE_PART
+        op.fastMerge(self.base, middle)
+        bpy.data.objects.remove(middle)
+        #endregion MIDDLE_PART
 
-        ##remesh
-        #op.remesh(self.base, voxel_size = 0.1)
+        #remesh
+        op.remesh(self.base, voxel_size = 0.1)
 
-        ##add material
-        #self.mat = bpy.data.materials.new(name = "HaircombMaterial")
-        #self.base.data.materials.append(self.mat)
+        #region WARPING
+        if self.warping:
+            bpy.ops.object.empty_add(type = "PLAIN_AXES", location = (0.0, 0.0, 0.0), rotation = (90*math.pi/180, 0.0, 0.0))
+            axis = bpy.context.object
+
+            angle = random.uniform(6.0, 14.0)*math.pi/180
+            l_limit = random.uniform(0.0, 0.5)
+            u_limit = random.uniform(max(0.5, l_limit+0.5), 1.0)
+
+            op.bend(object = self.base, origin = axis, angle = angle, l_limit = l_limit, u_limit = u_limit, axis = "X")
+
+        bpy.data.objects.remove(axis)
+        #endregion WARPING
+
+        #add material
+        self.mat = bpy.data.materials.new(name = "HaircombMaterial")
+        self.base.data.materials.append(self.mat)
 
 
     def getObject(self):
@@ -282,3 +307,15 @@ class Haircomb:
                 41/40*self.height,  21/40*self.width,  self.thickness,
                 41/40*self.height,  21/40*self.width,  0                #x8, y8, z8
                )
+
+
+bpy.ops.object.select_all(action = "SELECT")
+bpy.ops.object.delete()
+utils.removeMeshes()
+    
+#CREATE GROUND OBJECT
+bpy.ops.mesh.primitive_plane_add(size = 20000)
+    
+#CREATE OBJECT
+hc = Haircomb(missing_teeth = False, bent_teeth = False, warping = True)
+hc.createHaircomb()
