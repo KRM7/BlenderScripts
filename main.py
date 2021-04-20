@@ -10,6 +10,7 @@ num_objects = 1
 num_images = 20
 missing_teeth = False
 bent_teeth = False
+warping = False
 
 
 start_time = time.time()
@@ -62,7 +63,7 @@ for obj in range(num_objects):
     ground.data.materials.append(gmat)
     
     #CREATE OBJECT
-    hc = haircomb.Haircomb(missing_teeth = missing_teeth, bent_teeth = bent_teeth)
+    hc = haircomb.Haircomb(missing_teeth = missing_teeth, bent_teeth = bent_teeth, warping = warping)
     hc.createHaircomb()
     mat = hc.getMaterial()
     color = random.uniform(0.0, 0.005)
