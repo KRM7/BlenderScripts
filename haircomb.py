@@ -207,7 +207,7 @@ class Haircomb:
                 bpy.context.view_layer.objects.active = duplicate_tooth
                 bpy.ops.object.delete()
 
-            elif self.missing_teeth and (i in missing_idx): #missing teeth
+            elif self.missing_teeth and (i in missing_idx): #broken teeth
                 bpy.context.view_layer.objects.active = tooth
                 bpy.ops.object.select_all(action = "DESELECT")
                 tooth.select_set(1)
@@ -280,7 +280,7 @@ class Haircomb:
 
             op.bend(object = self.base, origin = axis, angle = angle, l_limit = l_limit, u_limit = u_limit, axis = "X")
 
-        bpy.data.objects.remove(axis)
+            bpy.data.objects.remove(axis)
         #endregion WARPING
 
         #add material
