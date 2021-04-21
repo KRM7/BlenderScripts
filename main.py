@@ -12,6 +12,7 @@ missing_teeth = False
 bent_teeth = False
 warping = False
 contamination = False
+splay = False
 
 
 start_time = time.time()
@@ -74,7 +75,12 @@ for obj in range(num_objects):
 
         #ADD RANDOM MATERIALS
         color = random.uniform(0.0, 0.005)
-        shaders.applyPlasticMatte(hc.getMaterial(), (color, color, color, 1.0), randomize = True, contamination = contamination)
+
+        if contamination: defect = "contamination"
+        elif splay: defect = "splay"
+        else : defect = None
+
+        shaders.applyPlasticMatte(hc.getMaterial(), (color, color, color, 1.0), randomize = True, defect = defect)
 
         mat_idx = random.choice(range(len(materials)))
         materials[mat_idx]["f"](gmat, materials[mat_idx]["scale"])
