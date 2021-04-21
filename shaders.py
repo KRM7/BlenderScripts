@@ -120,7 +120,7 @@ def applyPlasticRough(mat, color):
     node_principled.inputs["Alpha"].default_value = 1.0
 
 
-def applyPlasticMatte(mat, color, randomize = False, contamination = False):
+def applyPlasticMatte(mat, color, randomize = False, defect = None):
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
     nodes.clear()
@@ -162,8 +162,11 @@ def applyPlasticMatte(mat, color, randomize = False, contamination = False):
     node_principled.inputs["Emission Strength"].default_value = 0.0
     node_principled.inputs["Alpha"].default_value = 1.0
 
-    #contamination
-    if contamination:
+    #texture defects
+    if defect == None:
+        pass
+
+    elif defect == "contamination":
         node_coord = nodes.new(type = "ShaderNodeTexCoord")
         node_mapping = nodes.new(type = "ShaderNodeMapping")
         node_color = nodes.new(type = "ShaderNodeTexImage")
@@ -173,12 +176,32 @@ def applyPlasticMatte(mat, color, randomize = False, contamination = False):
         links.new(node_color.outputs["Color"], node_principled.inputs["Base Color"])
 
         node_color.image = bpy.data.images.load(project_path + "\\textures\\Contamination.png", check_existing=True)
-        node_mapping.inputs["Scale"].default_value[0] = 0.01 + random.uniform(0, 0.005)
-        node_mapping.inputs["Scale"].default_value[1] = 0.01 + random.uniform(0, 0.005)
-        node_mapping.inputs["Scale"].default_value[2] = 0.01 + random.uniform(0, 0.005)
-        node_mapping.inputs["Location"].default_value[0] = random.uniform(-2, 2)
-        node_mapping.inputs["Location"].default_value[1] = random.uniform(-2, 2)
-        node_mapping.inputs["Rotation"].default_value[2] = random.uniform(0, 2*math.pi)
+        node_mapping.inputs["Scale"].default_value[0] = 0.01 + int(randomize)*random.uniform(0, 0.005)
+        node_mapping.inputs["Scale"].default_value[1] = 0.01 + int(randomize)*random.uniform(0, 0.005)
+        node_mapping.inputs["Scale"].default_value[2] = 0.01 + int(randomize)*random.uniform(0, 0.005)
+        node_mapping.inputs["Location"].default_value[0] = 0 + int(randomize)*random.uniform(-2, 2)
+        node_mapping.inputs["Location"].default_value[1] = 0 + int(randomize)*random.uniform(-2, 2)
+        node_mapping.inputs["Rotation"].default_value[2] = 0 + int(randomize)*random.uniform(0, 2*math.pi)
+    
+    elif defect == "splay":
+        node_coord = nodes.new(type = "ShaderNodeTexCoord")
+        node_mapping = nodes.new(type = "ShaderNodeMapping")
+        node_color = nodes.new(type = "ShaderNodeTexImage")
+
+        links.new(node_coord.outputs["Object"], node_mapping.inputs["Vector"])
+        links.new(node_mapping.outputs["Vector"], node_color.inputs["Vector"])
+        links.new(node_color.outputs["Color"], node_principled.inputs["Base Color"])
+
+        node_color.image = bpy.data.images.load(project_path + "\\textures\\Splay.png", check_existing=True)
+        node_mapping.inputs["Scale"].default_value[0] = 0.04 + int(randomize)*random.uniform(0, 0.003)
+        node_mapping.inputs["Scale"].default_value[1] = 0.08 + int(randomize)*random.uniform(0, 0.004)
+        node_mapping.inputs["Scale"].default_value[2] = 1
+        node_mapping.inputs["Location"].default_value[0] = 0 + int(randomize)*random.uniform(-1, 1)
+        node_mapping.inputs["Location"].default_value[1] = 0 + int(randomize)*random.uniform(-1, 1)
+        node_mapping.inputs["Rotation"].default_value[2] = 90*math.pi/180
+
+    else:
+        raise ValueError("Invalid defect")
 
 
 def applyPlasticShiny(mat, color):
