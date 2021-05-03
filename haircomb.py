@@ -49,6 +49,7 @@ class Haircomb:
         self.middle_thickness = self.thickness/3            #thickness of the middle part
         self.middle_height = self.base_height/3             #height of the middle part
 
+
     def createHaircomb(self):
         self.__calcDerivedParams()
 
@@ -111,9 +112,9 @@ class Haircomb:
         bottom = self.base.vertex_groups.new(name = "bottom")
         for vert in self.base.data.vertices:
             if (vert.co.z - self.EPSILON <= -self.thickness/2):
-                bottom.add(index = [vert.index], weight = 1, type = "ADD")
+                bottom.add(index = vert.index, weight = 1, type = "ADD")
             elif (vert.co.z + self.EPSILON >= self.thickness/2):
-                top.add(index = [vert.index], weight = 1, type = "ADD")
+                top.add(index = vert.index, weight = 1, type = "ADD")
             else:
                 continue
 
@@ -312,10 +313,10 @@ class Haircomb:
 bpy.ops.object.select_all(action = "SELECT")
 bpy.ops.object.delete()
 utils.removeMeshes()
-    
+
 #CREATE GROUND OBJECT
 bpy.ops.mesh.primitive_plane_add(size = 20000)
-    
+
 #CREATE OBJECT
 hc = Haircomb(missing_teeth = False, bent_teeth = False, warping = True)
 hc.createHaircomb()
