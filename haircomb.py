@@ -112,9 +112,9 @@ class Haircomb:
         bottom = self.base.vertex_groups.new(name = "bottom")
         for vert in self.base.data.vertices:
             if (vert.co.z - self.EPSILON <= -self.thickness/2):
-                bottom.add(index = vert.index, weight = 1, type = "ADD")
+                bottom.add(index = [vert.index], weight = 1, type = "ADD")
             elif (vert.co.z + self.EPSILON >= self.thickness/2):
-                top.add(index = vert.index, weight = 1, type = "ADD")
+                top.add(index = [vert.index], weight = 1, type = "ADD")
             else:
                 continue
 
@@ -157,8 +157,7 @@ class Haircomb:
         bent_start = random.randrange(0, self.tooth_count - bent_num + 1)
         bent_idx = range(bent_start, bent_start + bent_num)     #indexes of bent teeth
 
-        bend_dir = random.uniform(-20.0, 200.0)
-        bend_dir = bend_dir*math.pi/180
+        bend_dir = math.pi/180 * random.uniform(-20.0, 200.0)
 
         origin_p = random.uniform(0.2, 0.6)
 
