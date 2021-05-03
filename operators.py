@@ -38,13 +38,13 @@ def intersect(target, object):
     bpy.ops.object.modifier_apply(modifier = "and")
 
     
-def roundEdges(object, vgroup, radius, segments = 5):
+def roundEdges(object, vgroup, radius, segments = 5, clamp_overlap = True):
     mod = object.modifiers.new("bevel", type = "BEVEL")
     mod.limit_method = "VGROUP"
     mod.vertex_group = vgroup
     mod.width = radius
     mod.segments = segments
-    mod.use_clamp_overlap = True
+    mod.use_clamp_overlap = clamp_overlap
     mod.miter_outer = "MITER_ARC"
 
     bpy.context.view_layer.objects.active = object
