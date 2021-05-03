@@ -6,13 +6,19 @@ import bpy, mathutils
 import math, random, time
 import utils, shaders, render, haircomb
 
+#options
+#image count
 num_objects = 1
 num_images = 20
+#mechanical defects
 missing_teeth = False
 bent_teeth = False
+#geometry defects
 warping = False
+#texture defects
 contamination = False
 splay = False
+gloss = False
 
 
 start_time = time.time()
@@ -78,6 +84,7 @@ for obj in range(num_objects):
 
         if contamination: defect = "contamination"
         elif splay: defect = "splay"
+        elif gloss: defect = "gloss"
         else : defect = None
 
         shaders.applyPlasticMatte(hc.getMaterial(), (color, color, color, 1.0), randomize = True, defect = defect)

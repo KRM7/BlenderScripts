@@ -200,6 +200,23 @@ def applyPlasticMatte(mat, color, randomize = False, defect = None):
         node_mapping.inputs["Location"].default_value[1] = 0 + int(randomize)*random.uniform(-1, 1)
         node_mapping.inputs["Rotation"].default_value[2] = 90*math.pi/180
 
+    elif defect == "gloss":
+        #principled shader
+        node_principled.inputs["Specular"].default_value = 0.025 + int(randomize)*random.uniform(0.0, 0.05)
+        node_principled.inputs["Anisotropic"].default_value = 0.0
+        node_principled.inputs["Clearcoat"].default_value = 0.05 + int(randomize)*random.uniform(0.0, 0.1)
+        node_principled.inputs["Clearcoat Roughness"].default_value = 0.5 + int(randomize)*random.uniform(0.0, 0.25)
+        node_principled.inputs["Roughness"].default_value = node_principled.inputs["Clearcoat Roughness"].default_value + 0.05
+
+        #noise texture shader
+        node_noise.inputs["Scale"].default_value = 150.0
+        node_noise.inputs["Roughness"].default_value = 1.0
+        node_noise.inputs["Distortion"].default_value = 0.5
+
+        #bump shader
+        node_bump.inputs["Strength"].default_value = 1.5 + int(randomize)*random.uniform(0.0, 1.0)
+        node_bump.inputs["Distance"].default_value = 0.25 + int(randomize)*random.uniform(0.0, 0.15)
+
     else:
         raise ValueError("Invalid defect")
 
@@ -441,6 +458,7 @@ def applyMetal(mat, scale = 80.0): #render with Eevee
     node_mapping.inputs["Scale"].default_value[2] = scale
 
 
+#not used
 def applyPlastic1(mat, scale = 45.0):
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
