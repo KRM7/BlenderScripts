@@ -202,6 +202,7 @@ def applyPlasticMatte(mat, color, randomize = False, defect = None):
 
     elif defect == "gloss":
         #principled shader
+        node_principled.inputs["Base Color"].default_value = color + 0.005
         node_principled.inputs["Specular"].default_value = 0.025 + int(randomize)*random.uniform(0.0, 0.05)
         node_principled.inputs["Anisotropic"].default_value = 0.0
         node_principled.inputs["Clearcoat"].default_value = 0.05 + int(randomize)*random.uniform(0.0, 0.1)
@@ -209,13 +210,20 @@ def applyPlasticMatte(mat, color, randomize = False, defect = None):
         node_principled.inputs["Roughness"].default_value = node_principled.inputs["Clearcoat Roughness"].default_value + 0.05
 
         #noise texture shader
-        node_noise.inputs["Scale"].default_value = 150.0
+        node_noise.inputs["Scale"].default_value = 185.0 + int(randomize)*random.uniform(0.0, 75.0)
         node_noise.inputs["Roughness"].default_value = 1.0
         node_noise.inputs["Distortion"].default_value = 0.5
 
         #bump shader
         node_bump.inputs["Strength"].default_value = 1.5 + int(randomize)*random.uniform(0.0, 1.0)
         node_bump.inputs["Distance"].default_value = 0.25 + int(randomize)*random.uniform(0.0, 0.15)
+
+    elif defect == "discoloration":
+        color_low = 0.05
+        color_high = 0.7
+        color = random.uniform(math.sqrt(color_low), math.sqrt(color_high))
+        color *= random.uniform(math.sqrt(color_low), math.sqrt(color_high))
+        node_principled.inputs["Base Color"].default_value = color
 
     else:
         raise ValueError("Invalid defect")

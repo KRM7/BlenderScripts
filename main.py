@@ -15,10 +15,11 @@ missing_teeth = False
 bent_teeth = False
 #geometry defects
 warping = False
-#texture defects
+#texture defects (1)
 contamination = False
 splay = False
 gloss = False
+discoloration = False
 
 
 start_time = time.time()
@@ -49,8 +50,8 @@ world.node_tree.links.new(node_env.outputs["Color"], world.node_tree.nodes["Back
 
 hdris = [
          {"path": project_path + "\\hdris\\peppermint_powerplant.hdr", "light_min": 0.4, "light_max": 1.5},
-         {"path": project_path + "\\hdris\\reinforced_concrete.hdr", "light_min": 0.6, "light_max": 1.8},
-         {"path": project_path + "\\hdris\\lebombo.hdr", "light_min": 0.4, "light_max": 0.9},
+         {"path": project_path + "\\hdris\\reinforced_concrete.hdr", "light_min": 0.7, "light_max": 1.8},
+         {"path": project_path + "\\hdris\\lebombo.hdr", "light_min": 0.5, "light_max": 1.0},
          {"path": project_path + "\\hdris\\killesberg_park.hdr", "light_min": 0.25, "light_max": 0.75},
          {"path": project_path + "\\hdris\\paul_lobe_haus.hdr", "light_min": 0.4, "light_max": 0.9},
         ]
@@ -85,6 +86,7 @@ for obj in range(num_objects):
         if contamination: defect = "contamination"
         elif splay: defect = "splay"
         elif gloss: defect = "gloss"
+        elif discoloration: defect = "discoloration"
         else : defect = None
 
         shaders.applyPlasticMatte(hc.getMaterial(), (color, color, color, 1.0), randomize = True, defect = defect)
