@@ -219,11 +219,11 @@ def applyPlasticMatte(mat, color, randomize = False, defect = None):
         node_bump.inputs["Distance"].default_value = 0.25 + int(randomize)*random.uniform(0.0, 0.15)
 
     elif defect == "discoloration":
-        color_low = 0.05
-        color_high = 0.7
-        color = random.uniform(math.sqrt(color_low), math.sqrt(color_high))
-        color *= random.uniform(math.sqrt(color_low), math.sqrt(color_high))
-        node_principled.inputs["Base Color"].default_value = color
+        color_low = 0.07
+        color_high = 0.6
+        clr = random.uniform(math.sqrt(color_low), math.sqrt(color_high))
+        clr *= random.uniform(math.sqrt(color_low), math.sqrt(color_high))
+        node_principled.inputs["Base Color"].default_value = (clr, clr, clr, 1.0)
 
     else:
         raise ValueError("Invalid defect")

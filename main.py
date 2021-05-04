@@ -6,7 +6,7 @@ import bpy, mathutils
 import math, random, time
 import utils, shaders, render, haircomb
 
-#options
+#settings
 #image count
 num_objects = 1
 num_images = 20
@@ -17,9 +17,9 @@ bent_teeth = False
 warping = False
 #texture defects (1)
 contamination = False
+discoloration = False
 splay = False
 gloss = False
-discoloration = False
 
 
 start_time = time.time()
@@ -38,7 +38,7 @@ gmat = bpy.data.materials.new(name = "ground")
 
 materials = [
              {"f": shaders.applyAsphalt, "scale": 700, "light_diff": -0.1},
-             {"f": shaders.applyPorcelain, "scale": 500, "light_diff": -0.3},
+             {"f": shaders.applyPorcelain, "scale": 500, "light_diff": -0.15},
              {"f": shaders.applyMetal, "scale": 500, "light_diff": 0.25},
              {"f": shaders.applyTiles, "scale": 400, "light_diff": 0.0}
             ]
@@ -52,7 +52,7 @@ hdris = [
          {"path": project_path + "\\hdris\\peppermint_powerplant.hdr", "light_min": 0.4, "light_max": 1.5},
          {"path": project_path + "\\hdris\\reinforced_concrete.hdr", "light_min": 0.7, "light_max": 1.8},
          {"path": project_path + "\\hdris\\lebombo.hdr", "light_min": 0.5, "light_max": 1.0},
-         {"path": project_path + "\\hdris\\killesberg_park.hdr", "light_min": 0.25, "light_max": 0.75},
+         {"path": project_path + "\\hdris\\killesberg_park.hdr", "light_min": 0.35, "light_max": 0.8},
          {"path": project_path + "\\hdris\\paul_lobe_haus.hdr", "light_min": 0.4, "light_max": 0.9},
         ]
 
