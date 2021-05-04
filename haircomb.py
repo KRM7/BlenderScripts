@@ -22,7 +22,8 @@ class Haircomb:
                  tooth_count = 46,
                  missing_teeth = False,
                  bent_teeth = False,
-                 warping = False):
+                 warping = False,
+                 ejector_marks = 0):
         #set parameters (mm)
         self.width = width                  #overall width of haircomb
         self.thickness = thickness          #overall thickness of haircomb
@@ -33,6 +34,7 @@ class Haircomb:
         self.missing_teeth = missing_teeth
         self.bent_teeth = bent_teeth
         self.warping = warping
+        self.ejector_marks = ejector_marks
         #derived parameters
         self.__calcDerivedParams()
 
@@ -220,7 +222,7 @@ class Haircomb:
                 for v_i in range(4):
                     cutter.data.vertices[v_i].co.x += random.uniform(-self.tooth_height/40, self.tooth_height/40)
 
-                op.cut(duplicate_tooth, cutter)
+                op.cut(duplicate_tooth, cutter, solver = "FAST")
 
                 for v_i in range(4):
                     cutter.data.vertices[v_i].co.x = vert_base_x
@@ -265,6 +267,39 @@ class Haircomb:
         op.fastMerge(self.base, middle)
         bpy.data.objects.remove(middle)
         #endregion MIDDLE_PART
+
+
+        #region EJECTOR_MARKS
+
+        if (self.ejector_marks > 0):
+            #params
+            ejector_radius = 0.3*self.base_height   #min: 0.15*self.base_height / max: 0.5*self.base_height
+            ejector_depth = 0.15                    #cutting depth
+            ejector_ypos = 0.37*self.width           #y_min = +-0.18*self.width, y_max: +-0.4*self.width
+        
+            #create ejector pin for cutting
+            bpy.ops.mesh.primitive_cylinder_add(radius = ejector_radius, depth = 5*ejector_depth)
+            ejector = bpy.context.object
+            ejector.location = mathutils.Vector((self.base_height/2, 0.0, self.thickness + 1.5*ejector_depth))
+
+            #create ejector marks
+            if (self.ejector_marks == 3):
+                op.cut(self.base, ejector, solver = "FAST")
+            elif (self.ejector_marks == 2):
+                pass
+            else:
+                raise ValueError("invalid num of pins")
+
+            ejector.location[1] += ejector_ypos
+            op.cut(self.base, ejector, solver = "FAST")
+            ejector.location[1] -= 2*ejector_ypos
+            op.cut(self.base, ejector, solver = "FAST")
+
+            #delete ejector
+            bpy.data.objects.remove(ejector)
+
+        #endregion EJECTOR_MARKS
+
 
         #remesh
         op.remesh(self.base, voxel_size = 0.1)
@@ -317,5 +352,5 @@ utils.removeMeshes()
 bpy.ops.mesh.primitive_plane_add(size = 20000)
 
 #CREATE OBJECT
-hc = Haircomb(missing_teeth = False, bent_teeth = False, warping = True)
+hc = Haircomb(missing_teeth = True, bent_teeth = True, warping = True, ejector_marks = 3)
 hc.createHaircomb()
