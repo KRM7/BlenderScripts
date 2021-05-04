@@ -20,9 +20,10 @@ def fastMerge(target, object):
     bpy.ops.object.modifier_apply(modifier = "fmerge")
  
     
-def cut(target, object):
+def cut(target, object, solver = "EXACT"):
     mod = target.modifiers.new("cut", type = "BOOLEAN")
     mod.operation = "DIFFERENCE"
+    mod.solver = solver
     mod.object = object
 
     bpy.context.view_layer.objects.active = target
