@@ -15,6 +15,7 @@ missing_teeth = False
 bent_teeth = False
 #geometry defects
 warping = False
+ejector_marks = 0
 #texture defects (1)
 contamination = False
 discoloration = False
@@ -72,7 +73,7 @@ for obj in range(num_objects):
     ground.data.materials.append(gmat)
     
     #CREATE OBJECT
-    hc = haircomb.Haircomb(missing_teeth = missing_teeth, bent_teeth = bent_teeth, warping = warping)
+    hc = haircomb.Haircomb(missing_teeth = missing_teeth, bent_teeth = bent_teeth, warping = warping, ejector_marks = ejector_marks)
     hc.createHaircomb()
 
     print("Object" + str(obj) + " generation done.")

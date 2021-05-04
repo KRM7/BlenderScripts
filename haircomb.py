@@ -274,8 +274,8 @@ class Haircomb:
         if (self.ejector_marks > 0):
             #params
             ejector_radius = 0.3*self.base_height   #min: 0.15*self.base_height / max: 0.5*self.base_height
-            ejector_depth = 0.15                    #cutting depth
-            ejector_ypos = 0.37*self.width           #y_min = +-0.18*self.width, y_max: +-0.4*self.width
+            ejector_depth = 0.1                     #cutting depth
+            ejector_ypos = 0.37*self.width          #y_min = +-0.18*self.width, y_max: +-0.4*self.width
         
             #create ejector pin for cutting
             bpy.ops.mesh.primitive_cylinder_add(radius = ejector_radius, depth = 5*ejector_depth)
