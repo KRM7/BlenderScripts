@@ -101,3 +101,6 @@ def calcAngles(count, indexes, angle):
             angles[id_list[i]] += random.uniform(-1*math.pi/180, 1*math.pi/180)
 
     return angles
+
+def clamp(value, l_bound, u_bound):
+    return min(max(value, l_bound), u_bound)
