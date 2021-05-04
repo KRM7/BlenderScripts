@@ -41,7 +41,7 @@ materials = [
              {"f": shaders.applyAsphalt, "scale": 700, "light_diff": -0.1},
              {"f": shaders.applyPorcelain, "scale": 500, "light_diff": -0.15},
              {"f": shaders.applyMetal, "scale": 500, "light_diff": 0.25},
-             {"f": shaders.applyTiles, "scale": 400, "light_diff": 0.0}
+             {"f": shaders.applyTiles, "scale": 400, "light_diff": 0.05}
             ]
 
 #world, hdri
