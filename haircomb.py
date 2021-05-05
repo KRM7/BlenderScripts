@@ -345,13 +345,13 @@ class Haircomb:
                )
 
 
-bpy.ops.object.select_all(action = "SELECT")
-bpy.ops.object.delete()
-utils.removeMeshes()
+#bpy.ops.object.select_all(action = "SELECT")
+#bpy.ops.object.delete()
+#utils.removeMeshes()
 
-#CREATE GROUND OBJECT
-bpy.ops.mesh.primitive_plane_add(size = 20000)
+##CREATE GROUND OBJECT
+#bpy.ops.mesh.primitive_plane_add(size = 20000)
 
-#CREATE OBJECT
-hc = Haircomb(missing_teeth = True, bent_teeth = True, warping = True, ejector_marks = 3)
-hc.createHaircomb()
+##CREATE OBJECT
+#hc = Haircomb(missing_teeth = True, bent_teeth = True, warping = True, ejector_marks = 3)
+#hc.createHaircomb()
