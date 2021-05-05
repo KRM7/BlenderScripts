@@ -9,7 +9,7 @@ import utils, shaders, render, haircomb
 #settings
 #image count
 num_objects = 1
-num_images = 20
+num_images = 1
 #mechanical defects
 missing_teeth = False
 bent_teeth = False
@@ -58,6 +58,10 @@ hdris = [
         ]
 
 print("Environment done.")
+
+#render engine
+render.setImageSettings(res_x = 1920, res_y = 1080, color = True)
+render.setupCycles(samples = 64, bounces = 32)
 
 
 #GENERATE OBJECTS
@@ -122,7 +126,7 @@ for obj in range(num_objects):
         #endregion
 
         #RENDER
-        render.cyclesRender(project_path + "\\imgs\\batch\\" + str(obj) + "_" + str(img), samples = 64, bounces = 32)
+        render.render(project_path + "\\imgs\\batch\\" + str(obj) + "_" + str(img))
 
 
 print("Overall time: %s seconds" % round((time.time() - start_time), 2))
