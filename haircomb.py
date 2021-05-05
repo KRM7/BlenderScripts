@@ -69,8 +69,8 @@ class Haircomb:
         verts = self.base.vertex_groups.new(name = "topright")
         verts.add(index = [2, 3], weight = 1, type = "REPLACE")
 
-        op.roundEdges(object = self.base, vgroup = "topleft", radius = self.base_radius, segments = 10)
-        op.roundEdges(object = self.base, vgroup = "topright", radius = self.base_radius, segments = 10)
+        op.roundEdges(object = self.base, edges = "topleft", radius = self.base_radius, segments = 10)
+        op.roundEdges(object = self.base, edges = "topright", radius = self.base_radius, segments = 10)
         #endregion BASE_PART
 
 
@@ -85,11 +85,11 @@ class Haircomb:
         #round the 2 vertical edges of the side part
         verts = side.vertex_groups.new(name = "outer_edge")
         verts.add(index = [4, 5], weight = 1, type = "REPLACE")
-        op.roundEdges(object = side, vgroup = "outer_edge", radius = self.side_radius, segments = 10)
+        op.roundEdges(object = side, edges = "outer_edge", radius = self.side_radius, segments = 10)
 
         verts = side.vertex_groups.new(name = "inner_edge")
         verts.add(index = [4, 5], weight = 1, type = "REPLACE")
-        op.roundEdges(object = side, vgroup = "inner_edge", radius = self.general_radius)
+        op.roundEdges(object = side, edges = "inner_edge", radius = self.general_radius)
 
         #add side parts
         bpy.context.view_layer.objects.active = side
@@ -97,12 +97,12 @@ class Haircomb:
         side.location += mathutils.Vector((self.side_height/2 + self.base_height,
                                            self.side_width/2 - self.width/2,
                                            self.thickness/2))
-        op.exactMerge(self.base, side)
+        op.merge(self.base, side, solver = "EXACT")
 
         #move into pos for right side
         side.location[1] += self.width - self.side_width
         bpy.ops.transform.rotate(value = math.pi, orient_axis = "X")    #mirror
-        op.exactMerge(self.base, side)
+        op.merge(self.base, side, solver = "EXACT")
 
         bpy.data.objects.remove(side)
         #endregion SIDE_PARTS
@@ -120,16 +120,16 @@ class Haircomb:
             else:
                 continue
 
-        op.roundEdges(object = self.base, vgroup = "top", radius = self.general_radius)
-        op.roundEdges(object = self.base, vgroup = "bottom", radius = self.general_radius)
+        op.roundEdges(object = self.base, edges = "top", radius = self.general_radius, clamp_overlap = False)
+        op.roundEdges(object = self.base, edges = "bottom", radius = self.general_radius, clamp_overlap = False)
         #endregion EDGES
         
 
         #region TEETH
 
         #create the tooth object
-        radius_scaling_factor = 1.5 # >1 scale between r_x/r_y
-        height_scaling_factor = 1.1 # >1 so the teeth reaches into the base part (for the union operator)
+        radius_scaling_factor = 1.5     # >1 scale between r_x/r_y
+        height_scaling_factor = 1.1     # >1 so the teeth reaches into the base part (for the union operator)
         bpy.ops.mesh.primitive_cone_add(radius1 = self.thickness/radius_scaling_factor,
                                         radius2 = 0.75*self.thickness/2,
                                         vertices = 20,
@@ -143,7 +143,7 @@ class Haircomb:
         for vert in tooth.data.vertices:
             if (vert.co.z + self.EPSILON >= height_scaling_factor*self.tooth_height/2):
                 verts.add(index = [vert.index], weight = 1, type = "ADD")
-        op.roundEdges(object = tooth, vgroup = "tip", radius = self.general_radius)
+        op.roundEdges(object = tooth, edges = "tip", radius = self.general_radius)
 
         #rotate and move the teeth into pos
         tooth.rotation_euler = mathutils.Vector((0, 90*math.pi/180, 0))
@@ -195,7 +195,7 @@ class Haircomb:
                 bpy.ops.object.duplicate()
                 duplicate_tooth = bpy.context.object
 
-                origin_temp = min(max(origin_p + random.uniform(-0.1, 0.1), 0.2), 0.6)
+                origin_temp = utils.clamp(origin_p + random.uniform(-0.1, 0.1), 0.2, 0.6)
                 origin_x = (origin_temp - 0.5)*height_scaling_factor*self.tooth_height
                 l_limit = origin_temp
                 u_limit = origin_temp + 0.15 + random.uniform(0.0, 0.1)
@@ -203,8 +203,9 @@ class Haircomb:
                 axis.location = tooth.location + mathutils.Vector((origin_x, 0.0, 0.0))
                 axis.rotation_euler[0] = bend_dir + random.uniform(-10*math.pi/180, 10*math.pi/180)
                 
+                op.remesh(object = duplicate_tooth, voxel_size = 0.25, adaptivity = 0.0)
                 op.bend(object = duplicate_tooth, origin = axis, angle = angles[i], l_limit = l_limit, u_limit = u_limit)
-                op.exactMerge(self.base, duplicate_tooth)
+                op.merge(self.base, duplicate_tooth, solver = "EXACT")
 
                 bpy.context.view_layer.objects.active = duplicate_tooth
                 bpy.ops.object.delete()
@@ -228,13 +229,13 @@ class Haircomb:
                     cutter.data.vertices[v_i].co.x = vert_base_x
                 cutter.location[0] = cutter_base_x
 
-                op.fastMerge(self.base, duplicate_tooth)
+                op.merge(self.base, duplicate_tooth, solver = "FAST")
 
                 bpy.context.view_layer.objects.active = duplicate_tooth
                 bpy.ops.object.delete()
 
             else:   #normal teeth
-                op.fastMerge(self.base, tooth)
+                op.merge(self.base, tooth, solver = "FAST")
 
             #move to next teeth position
             tooth.location[1] += self.tooth_spacing + self.tooth_width
@@ -262,9 +263,9 @@ class Haircomb:
         #round the edges of the middle part
         verts = middle.vertex_groups.new(name = "front")
         verts.add(index = [4, 6, 5, 7], weight = 1, type = "REPLACE")
-        op.roundEdges(object = middle, vgroup = "front", radius = self.middle_thickness/2)
+        op.roundEdges(object = middle, edges = "front", radius = self.middle_thickness/2)
 
-        op.fastMerge(self.base, middle)
+        op.merge(self.base, middle, solver = "FAST")
         bpy.data.objects.remove(middle)
         #endregion MIDDLE_PART
 
