@@ -38,10 +38,10 @@ utils.removeCameras()
 gmat = bpy.data.materials.new(name = "ground")
 
 materials = [
-             {"f": shaders.applyAsphalt, "scale": 700, "light_diff": -0.1},
-             {"f": shaders.applyPorcelain, "scale": 500, "light_diff": -0.15},
-             {"f": shaders.applyMetal, "scale": 500, "light_diff": 0.25},
-             {"f": shaders.applyTiles, "scale": 400, "light_diff": 0.05}
+             {"name": "Asphalt", "scale": 700, "light_diff": -0.1},
+             {"name": "Porcelain", "scale": 500, "light_diff": -0.15},
+             {"name": "Metal", "scale": 500, "light_diff": 0.25},
+             {"name": "Tiles", "scale": 400, "light_diff": 0.05}
             ]
 
 #world, hdri
@@ -86,7 +86,7 @@ for obj in range(num_objects):
     for img in range(num_images):
 
         #ADD RANDOM MATERIALS
-        color = random.uniform(0.0, 0.005)
+        color = random.uniform(0.0, 0.004)
 
         if contamination: defect = "contamination"
         elif splay: defect = "splay"
@@ -96,8 +96,9 @@ for obj in range(num_objects):
 
         shaders.applyPlasticMatte(hc.getMaterial(), (color, color, color, 1.0), randomize = True, defect = defect)
 
-        mat_idx = random.choice(range(len(materials)))
-        materials[mat_idx]["f"](gmat, materials[mat_idx]["scale"])
+        mat_idx = random.randrange(len(materials))
+        material = materials[mat_idx]
+        shaders.applyTextures(gmat, texture = material["name"], scale = material["scale"])
 
         #shaders.applyBase(gmat, random.sample(shaders.COLORS.values(), 1), randomize = True)
     
@@ -122,7 +123,7 @@ for obj in range(num_objects):
         world.node_tree.nodes["Background"].inputs["Strength"].default_value = random.uniform(hdris[hdri_idx]["light_min"], hdris[hdri_idx]["light_max"])
 
         #adjust light strength based on material
-        world.node_tree.nodes["Background"].inputs["Strength"].default_value += materials[mat_idx]["light_diff"]
+        world.node_tree.nodes["Background"].inputs["Strength"].default_value += material["light_diff"]
         #endregion
 
         #RENDER
