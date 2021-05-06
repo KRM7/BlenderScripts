@@ -3,26 +3,38 @@
 Shader setup functions for different materials.
 """
 
-import globals
 import bpy
+import globals, scene
 import random, math
-from os import path
-import sys
 from typing import List
-sys.path.append(globals.project_path)
+from os import path
 
-COLORS = {
-    #"BLACK": (0.0, 0.0, 0.0, 1.0),
-    "BLUE": (0.0, 0.0, 0.4, 1.0),
-    "PINK": (0.4, 0.0, 0.3, 1.0),
-    "GREEN": (0.0, 0.3, 0.0, 1.0),
-    "RED": (0.4, 0.0, 0.0, 1.0),
-    "YELLOW": (0.6, 0.6, 0.0, 1.0),
-    "WHITE": (0.8, 0.8, 0.8, 1.0),
-    "GRAY": (0.1, 0.1, 0.1, 1.0),
-    "LIGHTGRAY": (0.5, 0.5, 0.5, 1.0),
-    "ORANGE": (0.8, 0.16, 0.0, 1.0)
-}
+
+COLORS = {#"BLACK": (0.0, 0.0, 0.0, 1.0),
+            "BLUE": (0.0, 0.0, 0.4, 1.0),
+            "PINK": (0.4, 0.0, 0.3, 1.0),
+            "GREEN": (0.0, 0.3, 0.0, 1.0),
+            "RED": (0.4, 0.0, 0.0, 1.0),
+            "YELLOW": (0.6, 0.6, 0.0, 1.0),
+            "WHITE": (0.8, 0.8, 0.8, 1.0),
+            "GRAY": (0.1, 0.1, 0.1, 1.0),
+            "LIGHTGRAY": (0.5, 0.5, 0.5, 1.0),
+            "ORANGE": (0.8, 0.16, 0.0, 1.0) }
+
+#properties of the available material textures
+textures = [ {"name": "Asphalt",    "scale": 0.035*scene.ground_plane_size, "light_correction": 0.0},
+             {"name": "Porcelain",  "scale": 0.025*scene.ground_plane_size, "light_correction": -0.1},
+             {"name": "Metal",      "scale": 0.025*scene.ground_plane_size, "light_correction": 0.2},
+             {"name": "Tiles",      "scale": 0.020*scene.ground_plane_size, "light_correction": 0.0} ]
+
+
+def clearShaderNodes(mat : bpy.types.Material) -> None:
+    """Clears all the existing shader nodes and links of the material."""
+
+    mat.use_nodes = True
+    mat.node_tree.nodes.clear()
+    mat.node_tree.links.clear()
+
 
 #custom shaders
 
@@ -36,11 +48,9 @@ def applyBase(mat : bpy.types.Material, color : List[float], randomize : bool = 
     """
 
     #clear nodes and links
-    mat.use_nodes = True
+    clearShaderNodes(mat)
     nodes = mat.node_tree.nodes
-    nodes.clear()
     links = mat.node_tree.links
-    links.clear()
 
     #create shader nodes
     node_output = nodes.new(type = "ShaderNodeOutputMaterial")
@@ -74,65 +84,25 @@ def applyBase(mat : bpy.types.Material, color : List[float], randomize : bool = 
     node_principled.inputs["Emission Strength"].default_value = 0.0
 
 
-def applyPlasticRough(mat : bpy.types.Material, color : List[float]) -> None:
-    """Apply a rough/coarse looking plastic material to mat.
-    
-    Params:
-        mat: The material to apply the shaders to.
-        color: The base color of the material (R,G,B,A).
-    """
-
-    #clear nodes and links
-    mat.use_nodes = True
-    nodes = mat.node_tree.nodes
-    nodes.clear()
-    links = mat.node_tree.links
-    links.clear()
-
-    #create shader nodes
-    node_output = nodes.new(type = "ShaderNodeOutputMaterial")
-    node_principled = nodes.new(type = "ShaderNodeBsdfPrincipled")
-    node_bump = nodes.new(type = "ShaderNodeBump")
-    node_noise = nodes.new(type = "ShaderNodeTexNoise")
-
-    #connect shader nodes
-    links.new(node_principled.outputs["BSDF"], node_output.inputs["Surface"])
-    links.new(node_bump.outputs["Normal"], node_principled.inputs["Normal"])
-    links.new(node_noise.outputs["Fac"], node_bump.inputs["Height"])
-
-    #noise texture shader params
-    node_noise.inputs["Scale"].default_value = 1000.0
-    node_noise.inputs["Roughness"].default_value = 0.0
-    node_noise.inputs["Distortion"].default_value = 0.0
-    
-    #bump shader params
-    node_bump.inputs["Strength"].default_value = 1.0
-    node_bump.inputs["Distance"].default_value = 0.2
-    
-    #principled shader params
-    node_principled.inputs["Base Color"].default_value = color
-    node_principled.inputs["Specular"].default_value = 0.8
-    node_principled.inputs["Roughness"].default_value = 0.47
-    node_principled.inputs["Emission"].default_value = (0.0, 0.0, 0.0, 1.0)
-    node_principled.inputs["Emission Strength"].default_value = 2.0
-
-
-def applyPlasticMatte(mat : bpy.types.Material, color : List[float], randomize : bool = False, defect : str = None) -> None:
+def applyPlastic(mat : bpy.types.Material,
+                 color : List[float],
+                 surface : str,
+                 randomize : bool = False,
+                 defect : str = None) -> None:
     """Applies a matte looking plastic material to mat with slightly random parameters and possible defects.
     
     Params:
         mat: The material to apply the shaders to.
         color: The base color of the material (R,G,B,A).
+        surface: The type of the plastics surface (rough, matte, shiny).
         randomize: Randomize material params.
         defect: Possible texture defects.
     """
 
     #clear nodes and links
-    mat.use_nodes = True
+    clearShaderNodes(mat)
     nodes = mat.node_tree.nodes
-    nodes.clear()
     links = mat.node_tree.links
-    links.clear()
 
     #create shader nodes
     node_output = nodes.new(type = "ShaderNodeOutputMaterial")
@@ -146,23 +116,58 @@ def applyPlasticMatte(mat : bpy.types.Material, color : List[float], randomize :
     links.new(node_noise.outputs["Fac"], node_bump.inputs["Height"])
 
     #noise texture shader params
-    node_noise.inputs["Scale"].default_value = 2000.0
-    node_noise.inputs["Roughness"].default_value = 0.0
+    if surface == "Matte":
+        node_noise.inputs["Scale"].default_value = 2000.0
+        node_noise.inputs["Roughness"].default_value = 0.0
+    elif surface == "Rough":
+        node_noise.inputs["Scale"].default_value = 350.0
+        node_noise.inputs["Roughness"].default_value = 1.0
+        node_noise.inputs["Distortion"].default_value = 0.4
+    elif surface == "Shiny":
+        node_noise.inputs["Scale"].default_value = 1000.0
+        node_noise.inputs["Roughness"].default_value = 0.0
+    else:
+        raise ValueError("Invalid surface type.")
     
     #bump shader params
-    node_bump.inputs["Strength"].default_value = 0.1 + int(randomize)*random.uniform(0.0, 0.05)
-    node_bump.inputs["Distance"].default_value = 0.1 + int(randomize)*random.uniform(0.0, 0.05)
+    if surface == "Matte":
+        node_bump.inputs["Strength"].default_value = 0.1 + int(randomize)*random.uniform(0.0, 0.05)
+        node_bump.inputs["Distance"].default_value = 0.1 + int(randomize)*random.uniform(0.0, 0.05)
+    elif surface == "Rough":
+        node_bump.inputs["Strength"].default_value = 1.5 + int(randomize)*random.uniform(0.0, 1.0)
+        node_bump.inputs["Distance"].default_value = 0.2 + int(randomize)*random.uniform(0.0, 0.1)
+    elif surface == "Shiny":
+        node_bump.inputs["Strength"].default_value = 0.05 + int(randomize)*random.uniform(0.0, 0.05)
+        node_bump.inputs["Distance"].default_value = 0.1 + int(randomize)*random.uniform(0.0, 0.05)
+    else:
+        raise ValueError("Invalid surface type.")
    
     #principled shader params
     node_principled.distribution = "MULTI_GGX"
     node_principled.inputs["Base Color"].default_value = color
-    node_principled.inputs["Specular"].default_value = 0.13 + int(randomize)*random.uniform(0.0, 0.1)
-    node_principled.inputs["Roughness"].default_value = 0.5 + int(randomize)*random.uniform(0.0, 0.15)
-    node_principled.inputs["Anisotropic"].default_value = 0.2
-    node_principled.inputs["Sheen Tint"].default_value = 0.0
-    node_principled.inputs["Clearcoat"].default_value = 0.1 + int(randomize)*random.uniform(0.0, 0.2)
-    node_principled.inputs["Clearcoat Roughness"].default_value = 0.05 + int(randomize)*random.uniform(0.0, 0.05)
-    node_principled.inputs["Emission Strength"].default_value = 0.0
+    if surface == "Matte":
+        node_principled.inputs["Specular"].default_value = 0.1 + int(randomize)*random.uniform(0.0, 0.1)
+        node_principled.inputs["Roughness"].default_value = 0.5 + int(randomize)*random.uniform(0.0, 0.15)
+        node_principled.inputs["Anisotropic"].default_value = 0.2
+        node_principled.inputs["Clearcoat"].default_value = 0.1 + int(randomize)*random.uniform(0.0, 0.15)
+        node_principled.inputs["Clearcoat Roughness"].default_value = 0.05 + int(randomize)*random.uniform(0.0, 0.05)
+        node_principled.inputs["Emission Strength"].default_value = 0.0
+    elif surface == "Rough":
+        node_principled.inputs["Specular"].default_value = 0.1
+        node_principled.inputs["Roughness"].default_value = 0.5 + int(randomize)*random.uniform(0.0, 0.2)
+        node_principled.inputs["Anisotropic"].default_value = 0.0
+        node_principled.inputs["Clearcoat"].default_value = 0.05 + int(randomize)*random.uniform(0.0, 0.1)
+        node_principled.inputs["Clearcoat Roughness"].default_value = node_principled.inputs["Roughness"].default_value + 0.05
+        node_principled.inputs["Emission Strength"].default_value = 0.0
+    elif surface == "Shiny":
+        node_principled.inputs["Specular"].default_value = 0.05 + int(randomize)*random.uniform(0.0, 0.1)
+        node_principled.inputs["Roughness"].default_value = 0.2 + int(randomize)*random.uniform(0.0, 0.1)
+        node_principled.inputs["Anisotropic"].default_value = 0.2
+        node_principled.inputs["Clearcoat"].default_value = 0.4 + int(randomize)*random.uniform(0.0, 0.3)
+        node_principled.inputs["Clearcoat Roughness"].default_value = node_principled.inputs["Roughness"].default_value - 0.05
+        node_principled.inputs["Emission Strength"].default_value = 0.0
+    else:
+        raise ValueError("Invalid surface type.")
 
     #texture defects
     if defect == None:
@@ -237,57 +242,9 @@ def applyPlasticMatte(mat : bpy.types.Material, color : List[float], randomize :
         raise ValueError("Invalid defect")
 
 
-def applyPlasticShiny(mat : bpy.types.Material, color : List[float]) -> None:
-    """Applies a shiny looking plastic material to mat.
-    
-    Params:
-        mat: The material to apply the shaders to.
-        color: The base color of the material (R,G,B,A).
-    """
-
-    #clear nodes and links
-    mat.use_nodes = True
-    nodes = mat.node_tree.nodes
-    nodes.clear()
-    links = mat.node_tree.links
-    links.clear()
-
-    #create shader nodes
-    node_output = nodes.new(type = "ShaderNodeOutputMaterial")
-    node_principled = nodes.new(type = "ShaderNodeBsdfPrincipled")
-    node_bump = nodes.new(type = "ShaderNodeBump")
-    node_noise = nodes.new(type = "ShaderNodeTexNoise")
-
-    #connect shader nodes
-    links.new(node_principled.outputs["BSDF"], node_output.inputs["Surface"])
-    links.new(node_bump.outputs["Normal"], node_principled.inputs["Normal"])
-    links.new(node_noise.outputs["Fac"], node_bump.inputs["Height"])
-
-    #noise texture params
-    node_noise.inputs["Scale"].default_value = 1000.0
-    node_noise.inputs["Roughness"].default_value = 0.0
-    
-    #bump shader params
-    node_bump.inputs["Strength"].default_value = 0.02
-    node_bump.inputs["Distance"].default_value = 0.05
-    
-    #principled shader params
-    node_principled.distribution = "MULTI_GGX"
-    node_principled.inputs["Base Color"].default_value = color
-    node_principled.inputs["Subsurface"].default_value = 0.005
-    node_principled.inputs["Subsurface Color"].default_value = (1.0, 1.0, 1.0, 1.0)
-    node_principled.inputs["Metallic"].default_value = 0.0
-    node_principled.inputs["Specular"].default_value = 0.9
-    node_principled.inputs["Roughness"].default_value = 0.25
-    node_principled.inputs["Anisotropic"].default_value = 0.5
-    node_principled.inputs["Clearcoat"].default_value = 0.8
-    node_principled.inputs["Clearcoat Roughness"].default_value = 0.2
-    node_principled.inputs["Emission Strength"].default_value = 0.0
-
-
 #texture based shaders
 
-def applyTextures(mat : bpy.types.Material, texture : str = None, scale : float = 30.0) -> None:
+def applyTextures(mat : bpy.types.Material, texture : str, scale : float = 500.0) -> None:
     """Apply material using textures to mat.
     
     Params:
@@ -297,11 +254,9 @@ def applyTextures(mat : bpy.types.Material, texture : str = None, scale : float 
     """
 
     #clear links and nodes
-    mat.use_nodes = True
+    clearShaderNodes(mat)
     nodes = mat.node_tree.nodes
-    nodes.clear()
     links = mat.node_tree.links
-    links.clear()
 
     #create shader nodes
     node_output = nodes.new(type = "ShaderNodeOutputMaterial")
@@ -332,21 +287,40 @@ def applyTextures(mat : bpy.types.Material, texture : str = None, scale : float 
     #inputs
     node_principled.inputs["Specular"].default_value = 0.33
     node_displacement.inputs["Scale"].default_value = 0.05
-    node_mapping.inputs["Scale"].default_value[0] = scale
-    node_mapping.inputs["Scale"].default_value[1] = scale
-    node_mapping.inputs["Scale"].default_value[2] = scale
+    node_mapping.inputs["Scale"].default_value = (scale, scale, scale)
 
-    texture_path = globals.project_path + "\\textures\\" + texture
-    if not path.exists(texture_path):
+    #textures
+    textures_path = path.join(globals.project_path, "textures", texture)
+    if not path.exists(textures_path):
         raise ValueError("Invalid texture name.")
 
-    node_color.image = bpy.data.images.load(texture_path + "\\Color.png", check_existing = True)
-    node_displacement_t.image = bpy.data.images.load(texture_path + "\\Displacement.png", check_existing = True)
-    node_normal.image = bpy.data.images.load(texture_path + "\\Normal.png", check_existing = True)
-    node_roughness.image = bpy.data.images.load(texture_path + "\\Roughness.png", check_existing = True)
+    #basic textures
+    node_color.image = bpy.data.images.load(path.join(textures_path, "Color.png"), check_existing = True)
+    node_displacement_t.image = bpy.data.images.load(path.join(textures_path, "Displacement.png"), check_existing = True)
+    node_normal.image = bpy.data.images.load(path.join(textures_path, "Normal.png"), check_existing = True)
+    node_roughness.image = bpy.data.images.load(path.join(textures_path, "Roughness.png"), check_existing = True)
 
-    if texture == "Metal":
+    #metal texture if metallic
+    metal_tex_path = path.join(textures_path, "Metalness.png")
+    if path.exists(metal_tex_path):
         node_metalness = nodes.new(type = "ShaderNodeTexImage")
+        node_metalness.image = bpy.data.images.load(metal_tex_path, check_existing = True)
+
         links.new(node_metalness.outputs["Color"], node_principled.inputs["Metallic"])
         links.new(node_mapping.outputs["Vector"], node_metalness.inputs["Vector"])
-        node_metalness.image = bpy.data.images.load(globals.project_path + "\\textures\\Metal\\Metalness.png", check_existing = True)
+
+
+def applyRandomTextures(mat : bpy.types.Material) -> dict:
+    """Apply a material using a random texture to mat.
+
+    Params:
+        mat: The material to apply the shaders to.
+    Returns:
+        The selected texture from textures.
+    """
+    
+    tex_idx = random.randrange(len(textures))
+    texture = textures[tex_idx]
+    applyTextures(mat, texture["name"], texture["scale"])
+
+    return texture
