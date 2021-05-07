@@ -99,7 +99,6 @@ def applyPlastic(mat : bpy.types.Material,
         defect: Possible texture defects.
     """
 
-    #clear nodes and links
     clearShaderNodes(mat)
     nodes = mat.node_tree.nodes
     links = mat.node_tree.links
@@ -115,7 +114,7 @@ def applyPlastic(mat : bpy.types.Material,
     links.new(node_bump.outputs["Normal"], node_principled.inputs["Normal"])
     links.new(node_noise.outputs["Fac"], node_bump.inputs["Height"])
 
-    #noise texture shader params
+    #noise texture params
     if surface == "Matte":
         node_noise.inputs["Scale"].default_value = 2000.0
         node_noise.inputs["Roughness"].default_value = 0.0
@@ -169,12 +168,13 @@ def applyPlastic(mat : bpy.types.Material,
     else:
         raise ValueError("Invalid surface type.")
 
-    #texture defects
+    #defects
     if defect == None:
-        pass
+        return
 
-    elif defect == "contamination":
-        #new nodes
+    #texture defects
+    if defect in ("contamination", "splay", "cloudy"):
+        #add new nodes
         node_coord = nodes.new(type = "ShaderNodeTexCoord")
         node_mapping = nodes.new(type = "ShaderNodeMapping")
         node_color = nodes.new(type = "ShaderNodeTexImage")
@@ -184,8 +184,11 @@ def applyPlastic(mat : bpy.types.Material,
         links.new(node_mapping.outputs["Vector"], node_color.inputs["Vector"])
         links.new(node_color.outputs["Color"], node_principled.inputs["Base Color"])
 
+        textures_path = path.join(globals.project_path, "textures")
+
+    if defect == "contamination":
         #node params
-        node_color.image = bpy.data.images.load(globals.project_path + "\\textures\\Contamination.png", check_existing = True)
+        node_color.image = bpy.data.images.load(path.join(textures_path, "Contamination.png"), check_existing = True)
         node_mapping.inputs["Scale"].default_value[0] = 0.01 + int(randomize)*random.uniform(0.0, 0.005)
         node_mapping.inputs["Scale"].default_value[1] = 0.01 + int(randomize)*random.uniform(0.0, 0.005)
         node_mapping.inputs["Scale"].default_value[2] = 0.01 + int(randomize)*random.uniform(0.0, 0.005)
@@ -194,24 +197,30 @@ def applyPlastic(mat : bpy.types.Material,
         node_mapping.inputs["Rotation"].default_value[2] = 0.0 + int(randomize)*random.uniform(0.0, 2*math.pi)
     
     elif defect == "splay":
-        #new nodes
-        node_coord = nodes.new(type = "ShaderNodeTexCoord")
-        node_mapping = nodes.new(type = "ShaderNodeMapping")
-        node_color = nodes.new(type = "ShaderNodeTexImage")
-
-        #create links
-        links.new(node_coord.outputs["Object"], node_mapping.inputs["Vector"])
-        links.new(node_mapping.outputs["Vector"], node_color.inputs["Vector"])
-        links.new(node_color.outputs["Color"], node_principled.inputs["Base Color"])
-
         #node params
-        node_color.image = bpy.data.images.load(globals.project_path + "\\textures\\Splay.png", check_existing=True)
+        node_color.image = bpy.data.images.load(path.join(textures_path, "Splay.png"), check_existing = True)
         node_mapping.inputs["Scale"].default_value[0] = 0.04 + int(randomize)*random.uniform(0.0, 0.003)
         node_mapping.inputs["Scale"].default_value[1] = 0.08 + int(randomize)*random.uniform(0.0, 0.004)
         node_mapping.inputs["Scale"].default_value[2] = 1.0
         node_mapping.inputs["Location"].default_value[0] = 0.0 + int(randomize)*random.uniform(-1.0, 1.0)
         node_mapping.inputs["Location"].default_value[1] = 0.0 + int(randomize)*random.uniform(-1.0, 1.0)
         node_mapping.inputs["Rotation"].default_value[2] = 90*math.pi/180
+
+    elif defect == "cloudy":
+        #node params
+        node_mapping.inputs["Location"].default_value[0] = 0.0 + int(randomize)*random.uniform(0.0, 1.0)
+        node_mapping.inputs["Location"].default_value[1] = 0.0 + int(randomize)*random.uniform(0.0, 1.0)
+        node_mapping.inputs["Rotation"].default_value[2] = 0.0 + int(randomize)*random.uniform(0.0, 2*math.pi)
+        if (random.random() > 0.5):
+            node_color.image = bpy.data.images.load(path.join(textures_path, "Cloudy1.png"), check_existing = True)
+            node_mapping.inputs["Scale"].default_value[0] = 0.03 + int(randomize)*random.uniform(0.0, 0.02)
+            node_mapping.inputs["Scale"].default_value[1] = 0.03 + int(randomize)*random.uniform(0.0, 0.02)
+            node_mapping.inputs["Scale"].default_value[2] = 0.03 + int(randomize)*random.uniform(0.0, 0.02)
+        else:
+            node_color.image = bpy.data.images.load(path.join(textures_path, "Cloudy2.png"), check_existing = True)
+            node_mapping.inputs["Scale"].default_value[0] = 0.008 + int(randomize)*random.uniform(0.0, 0.017)
+            node_mapping.inputs["Scale"].default_value[1] = 0.008 + int(randomize)*random.uniform(0.0, 0.017)
+            node_mapping.inputs["Scale"].default_value[2] = 0.008 + int(randomize)*random.uniform(0.0, 0.017)
 
     elif defect == "gloss":
         #principled shader params
@@ -222,7 +231,7 @@ def applyPlastic(mat : bpy.types.Material,
         node_principled.inputs["Clearcoat Roughness"].default_value = 0.5 + int(randomize)*random.uniform(0.0, 0.25)
         node_principled.inputs["Roughness"].default_value = node_principled.inputs["Clearcoat Roughness"].default_value + 0.05
 
-        #noise texture shader params
+        #noise texture params
         node_noise.inputs["Scale"].default_value = 185.0 + int(randomize)*random.uniform(0.0, 75.0)
         node_noise.inputs["Roughness"].default_value = 1.0
         node_noise.inputs["Distortion"].default_value = 0.5
@@ -232,6 +241,7 @@ def applyPlastic(mat : bpy.types.Material,
         node_bump.inputs["Distance"].default_value = 0.25 + int(randomize)*random.uniform(0.0, 0.15)
 
     elif defect == "discoloration":
+        #color
         color_low = 0.07
         color_high = 0.6
         clr = random.uniform(math.sqrt(color_low), math.sqrt(color_high))

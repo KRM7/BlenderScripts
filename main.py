@@ -12,7 +12,7 @@ import utils, shaders, render, haircomb, scene
 num_objects = 1
 num_images = 1
 
-#mechanical and geometry defects (any combination)
+#geometry defects (any combination)
 missing_teeth = False
 bent_teeth = False
 warping = False
@@ -22,6 +22,7 @@ contamination = False
 discoloration = False
 splay = False
 gloss = False
+cloudy = False
 
 #camera params (degrees)
 cam_max_view_angle_x = 50.0
@@ -79,6 +80,7 @@ for obj in range(num_objects):
 
         if contamination: defect = "contamination"
         elif splay: defect = "splay"
+        elif cloudy: defect = "cloudy"
         elif gloss: defect = "gloss"
         elif discoloration: defect = "discoloration"
         else : defect = None
