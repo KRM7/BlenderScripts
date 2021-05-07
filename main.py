@@ -1,11 +1,11 @@
+import bpy, mathutils
+import sys, os
+
 project_path = "C:\\Users\\Krisztián\\source\\repos\\BlenderScripts"
-import sys
 sys.path.append(project_path)
 
-import bpy, mathutils
 import math, random, time
-from os import path
-import utils, shaders, render, haircomb, scene
+import globals, utils, shaders, render, haircomb, scene
 
 #SETTINGS
 #image count
@@ -109,8 +109,8 @@ for obj in range(num_objects):
         world.node_tree.nodes["Background"].inputs["Strength"].default_value += ground_texture["light_correction"]
 
         #RENDER
-        #render.render(project_path + "\\imgs\\batch\\" + str(obj) + "_" + str(img))
-        render.render(project_path + "\\imgs\\batch\\" + ground_texture["name"] + "_" + hdri["name"] + "_" + str(world.node_tree.nodes["Background"].inputs["Strength"].default_value))
+        #render.render(globals.project_path + "\\imgs\\batch\\" + str(obj) + "_" + str(img))
+        render.render(globals.project_path + "\\imgs\\batch\\" + ground_texture["name"] + "_" + hdri["name"] + "_" + str(world.node_tree.nodes["Background"].inputs["Strength"].default_value))
 
 
 print("Overall time: %s seconds" % round((time.time() - start_time), 2))
