@@ -1,7 +1,5 @@
 add random light functions to scene.py (for eevee render setup) (use old functions from prev versions of main.py)
 
-try to fix the project path thing in main.py
-
 the shader scales should be relative to the haircomb size
 
 defects:
