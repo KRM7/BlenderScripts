@@ -1,6 +1,7 @@
 import bpy, mathutils
 import sys, os
 
+#enter actual project path here (and also enter it in globals.py)
 project_path = "C:\\Users\\Krisztián\\source\\repos\\BlenderScripts"
 sys.path.append(project_path)
 
