@@ -3,17 +3,50 @@
 Haircomb class to create the object in blender.
 """
 
+
 project_path = "C:\\Users\\Krisztián\\source\\repos\\BlenderScripts"
 import sys
 sys.path.append(project_path)
 
 import bpy, mathutils
-import math, random
+
+import math
+import random
 from copy import deepcopy
 from typing import List
+
 import numpy as np
 import operators as op
-import utils, globals
+
+
+def calcAngles(count : int, indexes, angle : float) -> dict:
+    """Calculates the angles for each of the bent teeth of the haircomb.
+
+    Params:
+        count: The number of bent teeth.
+        indexes: The indexes of the bent teeth.
+        angle: The max angle to bend the teeth by.
+    Returns:
+        Dict with indexes as keys and the bending angles as values. (in radians)
+    """
+
+    angles = {}
+    id_list = [*indexes]
+    middle = int(count/2)
+    
+    #calc bending angles with clamping to prevent clipping
+    for i in range(count):
+        if i < middle:
+            angles[id_list[i]] = min((5+3*i)*math.pi/180, angle)
+        else:
+            angles[id_list[i]] = min((5+3*(count-1 - i))*math.pi/180, angle)
+        
+        #slightly randomize
+        if not ((i == 0) or (i == (count - 1))):
+            angles[id_list[i]] += random.uniform(-1*math.pi/180, 1*math.pi/180)
+
+    return angles
+
 
 class Haircomb:
     __EPSILON = 1E-6
@@ -173,7 +206,7 @@ class Haircomb:
             origin_p = random.uniform(0.2, 0.6)
 
             angle = random.uniform(6.0, 15.0)*math.pi/180
-            angles = utils.calcAngles(count = bent_num, indexes = bent_idx, angle = angle)
+            angles = calcAngles(count = bent_num, indexes = bent_idx, angle = angle)
 
             #create origin for bending
             bpy.ops.object.empty_add(type = "PLAIN_AXES")
@@ -361,14 +394,34 @@ class Haircomb:
                )
 
 
-#test
-bpy.ops.object.select_all(action = "SELECT")
-bpy.ops.object.delete()
-utils.removeMeshes()
 
-#CREATE GROUND OBJECT
-bpy.ops.mesh.primitive_plane_add(size = 20000)
+def main():
+    
+    #test
+    bpy.ops.object.select_all(action = "SELECT")
+    bpy.ops.object.delete()
+    utils.removeMeshes()
 
-#CREATE OBJECT
-hc = Haircomb(missing_teeth = True, bent_teeth = True, warping = True, ejector_marks = 3)
-hc.createHaircomb()
+    #CREATE GROUND OBJECT
+    bpy.ops.mesh.primitive_plane_add(size = 20000)
+
+    #CREATE OBJECT
+    hc = Haircomb(missing_teeth = True, bent_teeth = True, warping = True, ejector_marks = 2)
+    hc.createHaircomb()
+
+    shaders.applyPlastic(mat = hc.getMaterial(),
+                         color = (0.0, 0.0, 0.0, 1.0),
+                         surface = "Matte",
+                         randomize = True,
+                         textures_path = "C:\\Users\\Krisztián\\source\\repos\\BlenderScripts\\textures",
+                         defect = None)
+
+
+if __name__ == "__main__":
+    
+    project_path = "C:\\Users\\Krisztián\\source\\repos\\BlenderScripts"
+    import sys
+    sys.path.append(project_path)
+    import shaders, utils
+
+    main()

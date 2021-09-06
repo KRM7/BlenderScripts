@@ -4,8 +4,11 @@ Utility functions.
 """
 
 import bpy, mathutils
+
 import math, random
+import configparser
 from typing import List
+
 
 def removeCameras() -> None:
     """Removes every camera."""
@@ -39,9 +42,9 @@ def randomExtendBoundingBox(bounding_box : List[float], max_x : float, max_y : f
     """Randomly extends a bounding box coordinates in the x and y direction.
 
     Params:
-        bounding_box: The bounding box to extend
+        bounding_box: The bounding box to extend.
         max_x: The maximum distance to extend the bounding box by along the x axis.
-        max_y: The maximum distance to extend the bounding box by along the y axis
+        max_y: The maximum distance to extend the bounding box by along the y axis.
     Returns:
         The extended bounding box.
     """
@@ -54,44 +57,15 @@ def randomExtendBoundingBox(bounding_box : List[float], max_x : float, max_y : f
     bb = (
           bounding_box[0] - x_n,  bounding_box[1] - y_n,  bounding_box[2],  #point1
           bounding_box[3] - x_n,  bounding_box[4] - y_n,  bounding_box[5],  #point2
-          bounding_box[6] + x_p,  bounding_box[7] - y_n,  bounding_box[8],
+          bounding_box[6] + x_p,  bounding_box[7] - y_n,  bounding_box[8],  #...
           bounding_box[9] + x_p,  bounding_box[10] - y_n, bounding_box[11],
           bounding_box[12] - x_n, bounding_box[13] + y_p, bounding_box[14],
           bounding_box[15] - x_n, bounding_box[16] + y_p, bounding_box[17],
-          bounding_box[18] + x_p, bounding_box[19] + y_p, bounding_box[20],
+          bounding_box[18] + x_p, bounding_box[19] + y_p, bounding_box[20], #...
           bounding_box[21] + x_p, bounding_box[22] + y_p, bounding_box[23]  #point8
          )
 
     return bb
-
-
-def calcAngles(count : int, indexes, angle : float) -> dict:
-    """Calculates the angles for each of the bent teeth of the haircomb.
-
-    Params:
-        count: The number of bent teeth.
-        indexes: The indexes of the bent teeth.
-        angle: The max angle to bend the teeth by.
-    Returns:
-        Dict with indexes as keys and the bending angles as values. (in radians)
-    """
-
-    angles = {}
-    id_list = [*indexes]
-    middle = int(count/2)
-    
-    #calc bending angles with clamping to prevent clipping
-    for i in range(count):
-        if i < middle:
-            angles[id_list[i]] = min((5+3*i)*math.pi/180, angle)
-        else:
-            angles[id_list[i]] = min((5+3*(count-1 - i))*math.pi/180, angle)
-        
-        #slightly randomize
-        if not ((i == 0) or (i == (count - 1))):
-            angles[id_list[i]] += random.uniform(-1*math.pi/180, 1*math.pi/180)
-
-    return angles
 
 
 def clamp(value : float, l_bound : float, u_bound : float) -> float:

@@ -1,1 +1,0 @@
-project_path = "C:\\Users\\Krisztián\\source\\repos\\BlenderScripts"

@@ -1,8 +1,8 @@
-add random light functions to scene.py (for eevee render setup) (use old functions from prev versions of main.py)
+applyPlastic function filepath
+
 
 the shader scales should be relative to the haircomb size
 
 defects:
 	non-fill
 	flash
-	(blisters)
