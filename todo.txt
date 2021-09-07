@@ -1,5 +1,5 @@
 the shader scales should be relative to the haircomb size
 
-defects:
+defects (unimportant):
 	(non-fill)
 	(flash)
