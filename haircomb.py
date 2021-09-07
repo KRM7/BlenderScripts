@@ -3,8 +3,7 @@
 Haircomb class to create the object in blender.
 """
 
-
-project_path = "C:\\Users\\Krisztián\\source\\repos\\BlenderScripts"
+project_path = "S:\\source\\image-generator"
 import sys
 sys.path.append(project_path)
 
@@ -17,6 +16,7 @@ from typing import List
 
 import numpy as np
 import operators as op
+import utils
 
 
 def calcAngles(count : int, indexes, angle : float) -> dict:
@@ -27,21 +27,21 @@ def calcAngles(count : int, indexes, angle : float) -> dict:
         indexes: The indexes of the bent teeth.
         angle: The max angle to bend the teeth by.
     Returns:
-        Dict with indexes as keys and the bending angles as values. (in radians)
+        Dict with indexes as keys and the bending angles as values (in radians).
     """
 
     angles = {}
     id_list = [*indexes]
     middle = int(count/2)
     
-    #calc bending angles with clamping to prevent clipping
+    # Calc bending angles with clamping to prevent clipping.
     for i in range(count):
         if i < middle:
             angles[id_list[i]] = min((5+3*i)*math.pi/180, angle)
         else:
             angles[id_list[i]] = min((5+3*(count-1 - i))*math.pi/180, angle)
         
-        #slightly randomize
+        # Randomize slightly.
         if not ((i == 0) or (i == (count - 1))):
             angles[id_list[i]] += random.uniform(-1*math.pi/180, 1*math.pi/180)
 
@@ -62,34 +62,35 @@ class Haircomb:
                  bent_teeth : bool = False,
                  warping : bool = False,
                  ejector_marks : int = 0):
-        #set parameters (mm)
-        self.width = width                  #overall width of haircomb
-        self.thickness = thickness          #overall thickness of haircomb
-        self.base_height = base_height      #height of the base/head part
-        self.side_width = side_width        #width of 1 of the 2 side parts
-        self.tooth_height = tooth_height    #the length of the teeth
-        self.tooth_count = tooth_count      #number of teeth of the haircomb
+        # Set parameters (mm)
+        self.width = width                  # Overall width of haircomb.
+        self.thickness = thickness          # Overall thickness of haircomb.
+        self.base_height = base_height      # Height of the base/head part.
+        self.side_width = side_width        # Width of 1 of the 2 side parts.
+        self.tooth_height = tooth_height    # The length of the teeth.
+        self.tooth_count = tooth_count      # The number of teeth of the haircomb.
+        # Defects
         self.missing_teeth = missing_teeth
         self.bent_teeth = bent_teeth
         self.warping = warping
         self.ejector_marks = ejector_marks
-        #derived parameters
+        # Derived parameters
         self.__calcDerivedParams()
 
     def __calcDerivedParams(self) -> None:
         """Calculates all other derived parameters of the haircomb from the init parameters."""
 
-        self.height = self.base_height + self.tooth_height  #overall height of the haircomb
-        self.general_radius = self.thickness/5              #standard rounding for most edges
-        self.base_radius = self.base_height                 #radius of upper corners of the base/head
-        self.side_height = self.tooth_height                #length of the 2 side parts
-        self.side_thickness = self.thickness                #thickness of the 2 side parts
-        self.side_radius = 0.85*self.side_width             #radius of the rounding on the 2 sides
-        self.tooth_width = (self.width - 2*self.side_width)/(2*self.tooth_count + 1)   #width of one tooth
-        self.tooth_spacing = self.tooth_width               #distance between 2 teeth
-        self.middle_width = self.width                      #width of middle part (between the teeth)
-        self.middle_thickness = self.thickness/3            #thickness of the middle part
-        self.middle_height = self.base_height/3             #height of the middle part
+        self.height = self.base_height + self.tooth_height  # Overall height of the haircomb.
+        self.general_radius = self.thickness/5              # Standard rounding for most edges.
+        self.base_radius = self.base_height                 # Radius of upper corners of the base/head.
+        self.side_height = self.tooth_height                # Length of the 2 side parts.
+        self.side_thickness = self.thickness                # Thickness of the 2 side parts.
+        self.side_radius = 0.85*self.side_width             # Radius of the rounding on the 2 side parts.
+        self.tooth_width = (self.width - 2*self.side_width)/(2*self.tooth_count + 1)   # Width of one tooth.
+        self.tooth_spacing = self.tooth_width               # Distance between 2 teeth.
+        self.middle_width = self.width                      # Width of middle part (between the teeth).
+        self.middle_thickness = self.thickness/3            # Thickness of the middle part.
+        self.middle_height = self.base_height/3             # Height of the middle part.
 
 
     def createHaircomb(self) -> None:
@@ -97,12 +98,12 @@ class Haircomb:
 
         #region BASE_PART
 
-        #create the base object
+        # Create the base object
         bpy.ops.mesh.primitive_cube_add(location = (self.base_height/2, 0, self.thickness/2), 
                                         scale = (self.base_height, self.width, self.thickness))
         self.base = bpy.context.object
 
-        #round the 2 vertical edges of the base part
+        # Round the 2 vertical edges of the base part
         verts = self.base.vertex_groups.new(name = "topleft")
         verts.add(index = [0, 1], weight = 1, type = "REPLACE")
 
@@ -116,13 +117,13 @@ class Haircomb:
 
         #region SIDE_PARTS
 
-        #create the side object
-        scaling_factor = 2.5    #used for the uneven beveling later
+        # Create the side object
+        scaling_factor = 2.5    # Used for the uneven beveling later
         bpy.ops.mesh.primitive_cube_add(scale = (self.side_height/scaling_factor, self.side_width, self.thickness))
         side = bpy.context.object
         side.scale[0] = scaling_factor
 
-        #round the 2 vertical edges of the side part
+        # Round the 2 vertical edges of the side part
         verts = side.vertex_groups.new(name = "outer_edge")
         verts.add(index = [4, 5], weight = 1, type = "REPLACE")
         op.roundEdges(object = side, edges = "outer_edge", radius = self.side_radius, segments = 10)
@@ -131,15 +132,15 @@ class Haircomb:
         verts.add(index = [4, 5], weight = 1, type = "REPLACE")
         op.roundEdges(object = side, edges = "inner_edge", radius = self.general_radius)
 
-        #add side parts
+        # Add side parts
         bpy.context.view_layer.objects.active = side
-        #move into pos for left side
+        # Move into pos for left side
         side.location += mathutils.Vector((self.side_height/2 + self.base_height,
                                            self.side_width/2 - self.width/2,
                                            self.thickness/2))
         op.merge(self.base, side, solver = "EXACT")
 
-        #move into pos for right side
+        # Move into pos for right side
         side.location[1] += self.width - self.side_width
         bpy.ops.transform.rotate(value = math.pi, orient_axis = "X")    #mirror
         op.merge(self.base, side, solver = "EXACT")
@@ -149,7 +150,7 @@ class Haircomb:
 
 
         #region EDGES
-        #round horizontal edges
+        # Round horizontal edges
         top = self.base.vertex_groups.new(name = "top")
         bottom = self.base.vertex_groups.new(name = "bottom")
         for vert in self.base.data.vertices:
@@ -167,9 +168,9 @@ class Haircomb:
 
         #region TEETH
 
-        #create the tooth object
-        radius_scaling_factor = 1.5     # >1 scale between r_x/r_y
-        height_scaling_factor = 1.1     # >1 so the teeth reaches into the base part (for the union operator)
+        # Create the tooth object
+        radius_scaling_factor = 1.5     # > 1.0 scale between r_x/r_y
+        height_scaling_factor = 1.1     # > 1.0 so the tooth reaches into the base part (needed for the union operator)
         bpy.ops.mesh.primitive_cone_add(radius1 = self.thickness/radius_scaling_factor,
                                         radius2 = 0.75*self.thickness/2,
                                         vertices = 20,
@@ -178,14 +179,14 @@ class Haircomb:
                                                  height_scaling_factor*self.tooth_height))
         tooth = bpy.context.object
 
-        #round the edges on the tip of the teeth
+        # Round the edges on the tip of the teeth
         verts = tooth.vertex_groups.new(name = "tip")
         for vert in tooth.data.vertices:
             if (vert.co.z + self.__EPSILON >= height_scaling_factor*self.tooth_height/2):
                 verts.add(index = [vert.index], weight = 1, type = "ADD")
         op.roundEdges(object = tooth, edges = "tip", radius = self.general_radius)
 
-        #rotate and move the teeth into pos
+        # Rotate and move the teeth into pos
         tooth.rotation_euler = mathutils.Vector((0, 90*math.pi/180, 0))
         tooth.location += mathutils.Vector((self.base_height + self.tooth_height/2 - (height_scaling_factor - 1)*self.tooth_height/2,
                                             self.tooth_width/2 - self.width/2 + self.side_width + self.tooth_spacing,
@@ -194,12 +195,12 @@ class Haircomb:
 
         #region BENT_TEETH
 
-        #params for bent teeth
+        # Params for the bent teeth
         bent_idx = []
         if self.bent_teeth:
             bent_num = random.randrange(1, 21)
             bent_start = random.randrange(0, self.tooth_count - bent_num + 1)
-            bent_idx = range(bent_start, bent_start + bent_num)     #indexes of bent teeth
+            bent_idx = range(bent_start, bent_start + bent_num)     # Indices of bent teeth
 
             bend_dir = math.pi/180 * random.uniform(-20.0, 200.0)
 
@@ -208,20 +209,20 @@ class Haircomb:
             angle = random.uniform(6.0, 15.0)*math.pi/180
             angles = calcAngles(count = bent_num, indexes = bent_idx, angle = angle)
 
-            #create origin for bending
+            # Create origin for bending
             bpy.ops.object.empty_add(type = "PLAIN_AXES")
             axis = bpy.context.object
         #endregion BENT_TEETH
 
         #region MISSING_TEETH
 
-        #params for missing teeth
+        # Params for the missing teeth
         missing_idx = []
         if self.missing_teeth:
-            missing_num = min(np.random.geometric(0.2), self.tooth_count)       #number of missing teeth
-            missing_idx = random.sample(range(self.tooth_count), missing_num)   #indexes of missing teeth
+            missing_num = min(np.random.geometric(0.2), self.tooth_count)       # Number of missing teeth
+            missing_idx = random.sample(range(self.tooth_count), missing_num)   # indexes of missing teeth
 
-            #create cutter for missing teeth
+            # Ceate cutter for missing teeth
             bpy.ops.mesh.primitive_cube_add(scale = (self.tooth_height, 1.5*self.tooth_width, 1.5*self.thickness))
             cutter = bpy.context.object
             cutter.location += mathutils.Vector((self.tooth_height/2 + self.base_height + self.middle_height + self.tooth_height/30,
@@ -230,9 +231,9 @@ class Haircomb:
             cutter_base_x = cutter.location[0]
         #endregion MISSING_TEETH
         
-        #add all of the teeth
+        # Add all of the teeth
         for i in range(self.tooth_count):
-            if (i in bent_idx) and not (i in missing_idx): #bent teeth
+            if (i in bent_idx) and not (i in missing_idx): # Bent teeth
                 bpy.context.view_layer.objects.active = tooth
                 bpy.ops.object.select_all(action = "DESELECT")
                 tooth.select_set(1)
@@ -254,14 +255,14 @@ class Haircomb:
                 bpy.context.view_layer.objects.active = duplicate_tooth
                 bpy.ops.object.delete()
 
-            elif (i in missing_idx): #broken teeth
+            elif (i in missing_idx): # Broken teeth
                 bpy.context.view_layer.objects.active = tooth
                 bpy.ops.object.select_all(action = "DESELECT")
                 tooth.select_set(1)
                 bpy.ops.object.duplicate()
                 duplicate_tooth = bpy.context.object
 
-                #cut copied tooth
+                # Cut copied tooth
                 cutter.location[0] += random.uniform(0.0, self.tooth_height/5)
                 vert_base_x = cutter.data.vertices[0].co.x
                 for v_i in range(4):
@@ -278,10 +279,10 @@ class Haircomb:
                 bpy.context.view_layer.objects.active = duplicate_tooth
                 bpy.ops.object.delete()
 
-            else:   #normal teeth
+            else:   # Normal teeth
                 op.merge(self.base, tooth, solver = "FAST")
 
-            #move to next teeth position
+            # Move to next teeth position
             tooth.location[1] += self.tooth_spacing + self.tooth_width
             if self.missing_teeth:
                 cutter.location[1] = tooth.location[1]
@@ -296,8 +297,8 @@ class Haircomb:
 
         #region MIDDLE_PART
 
-        #create middle part
-        scaling_factor = 6.0    #for the uneven rounding
+        # Create middle part
+        scaling_factor = 6.0    # For the uneven rounding
         bpy.ops.mesh.primitive_cube_add(scale = (self.middle_height/scaling_factor,
                                                  self.middle_width,
                                                  self.middle_thickness))
@@ -307,7 +308,7 @@ class Haircomb:
                                              self.thickness/2))
         middle.scale[0] = scaling_factor
 
-        #round the edges of the middle part
+        # Round the edges of the middle part
         verts = middle.vertex_groups.new(name = "front")
         verts.add(index = [4, 6, 5, 7], weight = 1, type = "REPLACE")
         op.roundEdges(object = middle, edges = "front", radius = self.middle_thickness/2)
@@ -320,17 +321,17 @@ class Haircomb:
         #region EJECTOR_MARKS
 
         if (self.ejector_marks > 0):
-            #params
-            ejector_radius = 0.3*self.base_height   #min: 0.15*self.base_height / max: 0.5*self.base_height
-            ejector_depth = 0.1                     #cutting depth
-            ejector_pos_y = 0.37*self.width         #y_min = +-0.15*self.width, y_max: +-0.4*self.width
+            # Params
+            ejector_radius = 0.3*self.base_height   # min: 0.15*self.base_height / max: 0.5*self.base_height
+            ejector_depth = 0.2                     # Cutting depth
+            ejector_pos_y = 0.37*self.width         # y_min = +-0.15*self.width, y_max: +-0.4*self.width
         
-            #create ejector pin for cutting
+            # Create ejector pin for cutting
             bpy.ops.mesh.primitive_cylinder_add(radius = ejector_radius, depth = 5*ejector_depth)
             ejector = bpy.context.object
             ejector.location = mathutils.Vector((self.base_height/2, 0.0, self.thickness + 1.5*ejector_depth))
 
-            #create ejector marks
+            # Create ejector marks
             if (self.ejector_marks == 3):
                 op.cut(self.base, ejector, solver = "FAST")
             elif (self.ejector_marks == 2):
@@ -343,13 +344,13 @@ class Haircomb:
             ejector.location[1] = -ejector_pos_y
             op.cut(self.base, ejector, solver = "FAST")
 
-            #delete ejector
+            # Delete ejector object
             bpy.data.objects.remove(ejector)
 
         #endregion EJECTOR_MARKS
 
 
-        #remesh
+        # Remesh
         op.remesh(self.base, voxel_size = 0.1)
 
         #region WARPING
@@ -366,7 +367,7 @@ class Haircomb:
             bpy.data.objects.remove(axis)
         #endregion WARPING
 
-        #add material
+        # Add material
         self.mat = bpy.data.materials.new(name = "HaircombMaterial")
         self.base.data.materials.append(self.mat)
 
@@ -382,7 +383,7 @@ class Haircomb:
     def getBoundingBox(self) -> List[float]:
         """Returns a list containing the vertices of the objects bounding box.)"""
 
-        return ( #this format is needed for a blender function (camera_fit_coords)
+        return ( # This format is needed for a Blender function (camera_fit_coords)
                 -self.height/40,   -21/40*self.width,  self.thickness,  #x1, y1, z1
                 -self.height/40,   -21/40*self.width,  0,               #x2, y2, z2 ...
                 41/40*self.height, -21/40*self.width,  self.thickness,
@@ -397,15 +398,18 @@ class Haircomb:
 
 def main():
     
-    #test
     bpy.ops.object.select_all(action = "SELECT")
     bpy.ops.object.delete()
     utils.removeMeshes()
 
-    #CREATE GROUND OBJECT
+    # CREATE GROUND OBJECT
     bpy.ops.mesh.primitive_plane_add(size = 20000)
+    ground = bpy.context.object
+    ground_mat = bpy.data.materials.new(name = "ground")
+    ground.data.materials.append(ground_mat)
+    shaders.applyRandomTextures(ground_mat, "S:\\source\\image-generator\\textures")
 
-    #CREATE OBJECT
+    # CREATE OBJECT
     hc = Haircomb(missing_teeth = True, bent_teeth = True, warping = True, ejector_marks = 2)
     hc.createHaircomb()
 
@@ -413,13 +417,15 @@ def main():
                          color = (0.0, 0.0, 0.0, 1.0),
                          surface = "Matte",
                          randomize = True,
-                         textures_path = "C:\\Users\\Krisztián\\source\\repos\\BlenderScripts\\textures",
-                         defect = None)
+                         textures_path = "S:\\source\\image-generator\\textures",
+                         tex_defect = "contamination",
+                         gloss_defect = True,
+                         discoloration = True)
 
 
 if __name__ == "__main__":
     
-    project_path = "C:\\Users\\Krisztián\\source\\repos\\BlenderScripts"
+    project_path = "S:\\source\\image-generator"
     import sys
     sys.path.append(project_path)
     import shaders, utils
