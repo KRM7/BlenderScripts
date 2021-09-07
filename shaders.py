@@ -1,6 +1,7 @@
 """Blender 2.91
 
 Shader setup functions for different materials.
+
 """
 
 import bpy
@@ -14,7 +15,7 @@ import scene
 
 
 # Some predefined colors.
-COLORS = {#"BLACK": (0.0, 0.0, 0.0, 1.0),
+COLORS = {  "BLACK": (0.0, 0.0, 0.0, 1.0),
             "BLUE": (0.0, 0.0, 0.4, 1.0),
             "PINK": (0.4, 0.0, 0.3, 1.0),
             "GREEN": (0.0, 0.3, 0.0, 1.0),
@@ -94,7 +95,9 @@ def applyPlastic(mat : bpy.types.Material,
                  surface : str,
                  randomize : bool,
                  textures_path : str,
-                 defect : str = None) -> None:
+                 tex_defect : str = None,
+                 gloss_defect : bool = False,
+                 discoloration : bool = False) -> None:
     """Applies a matte looking plastic material to mat with slightly random parameters and possible defects.
     
     Params:
@@ -103,7 +106,9 @@ def applyPlastic(mat : bpy.types.Material,
         surface: The type of the plastics surface (one of "Rough", "Matte", or "Shiny").
         randomize: Randomize material params.
         textures_path: The directory which contains the textures used for the defects.
-        defect: Possible texture defects (one of "contamination", "splay", "cloudy", "gloss", or "discoloration").
+        tex_defect: Possible texture defects (one of "contamination", "splay", or "cloudy").
+        gloss_defect: Apply gloss defect to the material if True.
+        discoloration: Apply discoloration defect to the material if True.
     """
 
     clearShaderNodes(mat)
@@ -175,61 +180,9 @@ def applyPlastic(mat : bpy.types.Material,
     else:
         raise ValueError("Invalid surface type.")
 
-    # Defects
-    if defect == None:
-        return
-
-    # Texture defects
-    if defect in ("contamination", "splay", "cloudy"):
-        # Add new nodes
-        node_coord = nodes.new(type = "ShaderNodeTexCoord")
-        node_mapping = nodes.new(type = "ShaderNodeMapping")
-        node_color = nodes.new(type = "ShaderNodeTexImage")
-
-        # Create links
-        links.new(node_coord.outputs["Object"], node_mapping.inputs["Vector"])
-        links.new(node_mapping.outputs["Vector"], node_color.inputs["Vector"])
-        links.new(node_color.outputs["Color"], node_principled.inputs["Base Color"])
-
-    if defect == "contamination":
-        # Node params
-        node_color.image = bpy.data.images.load(path.join(textures_path, "Contamination.png"), check_existing = True)
-        node_mapping.inputs["Scale"].default_value[0] = 0.01 + int(randomize)*random.uniform(0.0, 0.005)
-        node_mapping.inputs["Scale"].default_value[1] = 0.01 + int(randomize)*random.uniform(0.0, 0.005)
-        node_mapping.inputs["Scale"].default_value[2] = 0.01 + int(randomize)*random.uniform(0.0, 0.005)
-        node_mapping.inputs["Location"].default_value[0] = 0.0 + int(randomize)*random.uniform(-2.0, 2.0)
-        node_mapping.inputs["Location"].default_value[1] = 0.0 + int(randomize)*random.uniform(-2.0, 2.0)
-        node_mapping.inputs["Rotation"].default_value[2] = 0.0 + int(randomize)*random.uniform(0.0, 2*math.pi)
-    
-    elif defect == "splay":
-        # Node params
-        node_color.image = bpy.data.images.load(path.join(textures_path, "Splay.png"), check_existing = True)
-        node_mapping.inputs["Scale"].default_value[0] = 0.04 + int(randomize)*random.uniform(0.0, 0.003)
-        node_mapping.inputs["Scale"].default_value[1] = 0.08 + int(randomize)*random.uniform(0.0, 0.004)
-        node_mapping.inputs["Scale"].default_value[2] = 1.0
-        node_mapping.inputs["Location"].default_value[0] = 0.0 + int(randomize)*random.uniform(-1.0, 1.0)
-        node_mapping.inputs["Location"].default_value[1] = 0.0 + int(randomize)*random.uniform(-1.0, 1.0)
-        node_mapping.inputs["Rotation"].default_value[2] = 90*math.pi/180
-
-    elif defect == "cloudy":
-        # Node params
-        node_mapping.inputs["Location"].default_value[0] = 0.0 + int(randomize)*random.uniform(0.0, 1.0)
-        node_mapping.inputs["Location"].default_value[1] = 0.0 + int(randomize)*random.uniform(0.0, 1.0)
-        node_mapping.inputs["Rotation"].default_value[2] = 0.0 + int(randomize)*random.uniform(0.0, 2*math.pi)
-        if (random.random() > 0.5):
-            node_color.image = bpy.data.images.load(path.join(textures_path, "Cloudy1.png"), check_existing = True)
-            node_mapping.inputs["Scale"].default_value[0] = 0.03 + int(randomize)*random.uniform(0.0, 0.02)
-            node_mapping.inputs["Scale"].default_value[1] = 0.03 + int(randomize)*random.uniform(0.0, 0.02)
-            node_mapping.inputs["Scale"].default_value[2] = 0.03 + int(randomize)*random.uniform(0.0, 0.02)
-        else:
-            node_color.image = bpy.data.images.load(path.join(textures_path, "Cloudy2.png"), check_existing = True)
-            node_mapping.inputs["Scale"].default_value[0] = 0.008 + int(randomize)*random.uniform(0.0, 0.017)
-            node_mapping.inputs["Scale"].default_value[1] = 0.008 + int(randomize)*random.uniform(0.0, 0.017)
-            node_mapping.inputs["Scale"].default_value[2] = 0.008 + int(randomize)*random.uniform(0.0, 0.017)
-
-    elif defect == "gloss":
+    # Adjust principled shader for the gloss defect.
+    if gloss_defect:
         # Principled shader params
-        node_principled.inputs["Base Color"].default_value = color + 0.005
         node_principled.inputs["Specular"].default_value = 0.025 + int(randomize)*random.uniform(0.0, 0.05)
         node_principled.inputs["Anisotropic"].default_value = 0.0
         node_principled.inputs["Clearcoat"].default_value = 0.05 + int(randomize)*random.uniform(0.0, 0.1)
@@ -245,16 +198,77 @@ def applyPlastic(mat : bpy.types.Material,
         node_bump.inputs["Strength"].default_value = 1.5 + int(randomize)*random.uniform(0.0, 1.0)
         node_bump.inputs["Distance"].default_value = 0.25 + int(randomize)*random.uniform(0.0, 0.15)
 
-    elif defect == "discoloration":
-        # Color
-        color_low = 0.07
-        color_high = 0.6
-        clr = random.uniform(math.sqrt(color_low), math.sqrt(color_high))
-        clr *= random.uniform(math.sqrt(color_low), math.sqrt(color_high))
-        node_principled.inputs["Base Color"].default_value = (clr, clr, clr, 1.0)
+    # Texture defects
+    if tex_defect in ("contamination", "splay", "cloudy"):
+        # Add new nodes
+        node_coord = nodes.new(type = "ShaderNodeTexCoord")
+        node_mapping = nodes.new(type = "ShaderNodeMapping")
+        node_color = nodes.new(type = "ShaderNodeTexImage")
+        node_add = nodes.new(type = "ShaderNodeMath")
+
+        # Node default values
+        node_add.inputs[1].default_value = 0.0
+
+        # Create links
+        links.new(node_coord.outputs["Object"], node_mapping.inputs["Vector"])
+        links.new(node_mapping.outputs["Vector"], node_color.inputs["Vector"])
+        links.new(node_color.outputs["Color"], node_add.inputs[0])
+        links.new(node_add.outputs["Value"], node_principled.inputs["Base Color"])
+
+    if tex_defect == None:
+        pass
+
+    elif tex_defect == "contamination":
+        # Node params
+        node_color.image = bpy.data.images.load(path.join(textures_path, "Contamination.png"), check_existing = True)
+        node_mapping.inputs["Scale"].default_value[0] = 0.01 + int(randomize)*random.uniform(0.0, 0.005)
+        node_mapping.inputs["Scale"].default_value[1] = 0.01 + int(randomize)*random.uniform(0.0, 0.005)
+        node_mapping.inputs["Scale"].default_value[2] = 0.01 + int(randomize)*random.uniform(0.0, 0.005)
+        node_mapping.inputs["Location"].default_value[0] = 0.0 + int(randomize)*random.uniform(-2.0, 2.0)
+        node_mapping.inputs["Location"].default_value[1] = 0.0 + int(randomize)*random.uniform(-2.0, 2.0)
+        node_mapping.inputs["Rotation"].default_value[2] = 0.0 + int(randomize)*random.uniform(0.0, 2*math.pi)
+    
+    elif tex_defect == "splay":
+        # Node params
+        node_color.image = bpy.data.images.load(path.join(textures_path, "Splay.png"), check_existing = True)
+        node_mapping.inputs["Scale"].default_value[0] = 0.04 + int(randomize)*random.uniform(0.0, 0.003)
+        node_mapping.inputs["Scale"].default_value[1] = 0.08 + int(randomize)*random.uniform(0.0, 0.004)
+        node_mapping.inputs["Scale"].default_value[2] = 1.0
+        node_mapping.inputs["Location"].default_value[0] = 0.0 + int(randomize)*random.uniform(-1.0, 1.0)
+        node_mapping.inputs["Location"].default_value[1] = 0.0 + int(randomize)*random.uniform(-1.0, 1.0)
+        node_mapping.inputs["Rotation"].default_value[2] = 90*math.pi/180
+
+    elif tex_defect == "cloudy":
+        # Node params
+        node_mapping.inputs["Location"].default_value[0] = 0.0 + int(randomize)*random.uniform(0.0, 1.0)
+        node_mapping.inputs["Location"].default_value[1] = 0.0 + int(randomize)*random.uniform(0.0, 1.0)
+        node_mapping.inputs["Rotation"].default_value[2] = 0.0 + int(randomize)*random.uniform(0.0, 2*math.pi)
+        if (random.random() > 0.5):
+            node_color.image = bpy.data.images.load(path.join(textures_path, "Cloudy1.png"), check_existing = True)
+            node_mapping.inputs["Scale"].default_value[0] = 0.03 + int(randomize)*random.uniform(0.0, 0.02)
+            node_mapping.inputs["Scale"].default_value[1] = 0.03 + int(randomize)*random.uniform(0.0, 0.02)
+            node_mapping.inputs["Scale"].default_value[2] = 0.03 + int(randomize)*random.uniform(0.0, 0.02)
+        else:
+            node_color.image = bpy.data.images.load(path.join(textures_path, "Cloudy2.png"), check_existing = True)
+            node_mapping.inputs["Scale"].default_value[0] = 0.008 + int(randomize)*random.uniform(0.0, 0.017)
+            node_mapping.inputs["Scale"].default_value[1] = 0.008 + int(randomize)*random.uniform(0.0, 0.017)
+            node_mapping.inputs["Scale"].default_value[2] = 0.008 + int(randomize)*random.uniform(0.0, 0.017)
 
     else:
-        raise ValueError("Invalid defect")
+        raise ValueError("Invalid texture defect. " + tex_defect)
+
+    # Discoloration defect
+    if discoloration:
+        # Base color
+        color_low, color_high = 0.2, 0.8
+        clr = color_low + random.expovariate(250.0) % (color_high - color_low)
+
+        node_principled.inputs["Base Color"].default_value = (clr, clr, clr, 1.0)
+
+        # Texture color if used
+        if tex_defect != None:
+            tex_low, tex_high = 0.03, 0.5
+            node_add.inputs[1].default_value = tex_low + random.expovariate(250.0) % (tex_high - tex_low)
 
 
 # Texture based shaders
@@ -305,6 +319,8 @@ def applyTextures(mat : bpy.types.Material,
 
     # Inputs
     node_principled.inputs["Specular"].default_value = 0.33
+    node_principled.inputs["Anisotropic"].default_value = 0.0
+    node_principled.distribution = "MULTI_GGX"
     node_displacement.inputs["Scale"].default_value = 0.05
     node_mapping.inputs["Scale"].default_value = (scale, scale, scale)
 
