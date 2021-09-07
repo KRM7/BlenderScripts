@@ -4,9 +4,9 @@ import os
 def main():
 
     project_path = os.path.abspath(os.path.dirname(__file__))
-    path = os.path.join(project_path, "generate.py")
+    generate_path = os.path.join(project_path, "generate.py")
 
-    cmd = "blender --background --python " + path + " -- " + project_path
+    cmd = "blender --background --verbose 0 --log-level 0 --python " + generate_path + " -- " + project_path
 
     os.system(cmd)
 
