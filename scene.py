@@ -94,5 +94,30 @@ def placeCamera(target_coords : List[float],
     return camera
 
 
-def placeLights() -> None:
-    """ TODO: places a light randomly in the scene (distance, angle, strength rand within range) """
+def placeLights(num_lights : int,
+                height_min : float,
+                height_max : float,
+                hdistance_min : float,
+                hdistance_max : float,
+                strength_min : float,
+                strength_max : float) -> None:
+    """ Places a number of point lights randomly in the scene within the specified bounds.
+    
+    Params:
+        num_lights: The number of lights to place in the scene.
+        height_min: The minimum height at which the lights are placed.
+        height_max: The maximum height at which the lights are placed.
+        hdistance_min: The minimum horizontal distance from the origin at which the lights can be placed.
+        hdistance_max: The maximum horizontal distance from the origin at which the lights can be placed.
+        strength_min: The minimum energy of the light sources in megawatts.
+        strength_max: The maximum energy of the light sources in megawatts.
+    """
+
+    for light in range(num_lights):
+        angle = random.uniform(0.0, 2.0*math.pi)
+        hdistance = random.uniform(hdistance_min, hdistance_max)
+        loc_x = hdistance*math.cos(angle)
+        loc_y = hdistance*math.sin(angle)
+        bpy.ops.object.light_add(type = "POINT", location = (loc_x, loc_y, random.uniform(height_min, height_max)))
+        light = bpy.context.object
+        light.data.energy = random.uniform(strength_min, strength_max) * 1E6
