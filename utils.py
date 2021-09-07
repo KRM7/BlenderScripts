@@ -5,8 +5,8 @@ Utility functions.
 
 import bpy, mathutils
 
-import math, random
-import configparser
+import math
+import random
 from typing import List
 
 
