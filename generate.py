@@ -1,3 +1,8 @@
+"""Blender 2.91
+
+This script generates the images based on the config settings.
+"""
+
 import bpy, mathutils
 
 import sys
@@ -34,6 +39,8 @@ if config["Render"]["engine"] == "cycles":
                        denoising = config["Render"]["denoise"] == "True")
 elif config["Render"]["engine"] == "eevee":
     render.setupEevee(samples = int(config["Render"]["samples"]))
+else:
+    raise ValueError("Invalid render engine: " + str(config["Render"]["engine"]))
 
 
 # Set the output image settings based on the config
@@ -55,7 +62,7 @@ if config["Lights"]["use_hdris"] == "True":
     node_env = world.node_tree.nodes.new(type = "ShaderNodeTexEnvironment")
     world.node_tree.links.new(node_env.outputs["Color"], world.node_tree.nodes["Background"].inputs["Color"])
 
-# Set up the defect combination generator
+# Setup for the defect combination generator
 defect_gen = defects.Defects(config["Object"]["enable_missing_teeth"] == "True",
                               config["Object"]["enable_bent_teeth"] == "True",
                               config["Object"]["enable_warping"] == "True",
@@ -69,8 +76,9 @@ defect_gen = defects.Defects(config["Object"]["enable_missing_teeth"] == "True",
 
 
 # Index file
-img_name, img_cntr = 0, 0
-index_filepath = os.path.join(config["Paths"]["output_path"], "index.csv")
+# Either create a new index or if it already exists, append new images
+img_name, img_cntr = 0, 0   # img_name is not the same as the img_cntr if there are already images in the output directory and we are adding more
+index_filepath = os.path.join(config["Output"]["output_path"], "index.csv")
 
 append_index = os.path.isfile(index_filepath) and config["Output"]["overwrite"] != "True"
 if append_index:
@@ -86,7 +94,7 @@ else:
     index_writer = csv.writer(index_file)
     index_writer.writerow(["Filenames", "missing_teeth", "bent_teeth", "warped", "ejector_marks", "low_gloss", "discoloration", "contamination", "cloudy", "splay"])
 
-# The overall number of images to generate, and the number of images to generate of 1 object before creating a new model.
+# The overall number of images to generate, and the number of images to generate of 1 object before creating a new object model.
 num_imgs = int(config["Output"]["num_imgs"])
 imgs_per_object = int(config["Output"]["imgs_per_object"])
 
@@ -109,9 +117,9 @@ for _ in range(int(num_imgs/imgs_per_object)):
     # Generate images of the haircomb
     for _ in range(imgs_per_object):
 
-        # Add random materials
-        tex_path = os.path.join(config["Paths"]["project_path"], "textures")
-
+        # Add random materials to the objects in the scene.
+        tex_path = os.path.join(project_path, "textures")
+        # Apply the plastic texture to the object.
         shaders.applyPlastic(mat = hc.getMaterial(),
                              color = (0.0, 0.0, 0.0, 1.0),
                              surface = config["Object"]["surface"],
@@ -121,11 +129,11 @@ for _ in range(int(num_imgs/imgs_per_object)):
                              gloss_defect = defect_gen.gloss,
                              discoloration = defect_gen.discoloration)
 
-        # Apply material to the ground plane
+        # Apply a random material texture to the ground plane.
         ground_texture = shaders.applyRandomTextures(ground_mat, tex_path)
     
 
-        # Camera setup
+        # Camera setup (so that the object is always in the frame).
         scene.removeCameras()
 
         coords = hc.getBoundingBox()
@@ -142,7 +150,7 @@ for _ in range(int(num_imgs/imgs_per_object)):
         # Lighting setup
         if config["Lights"]["use_hdris"] == "True":
             hdri = random.choice(scene.hdris)
-            hdri_path = os.path.join(config["Paths"]["project_path"], "hdris", hdri["name"])
+            hdri_path = os.path.join(project_path, "hdris", hdri["name"])
 
             node_env.image = bpy.data.images.load(hdri_path, check_existing = True)
             world.node_tree.nodes["Background"].inputs["Strength"].default_value = random.uniform(hdri["light_min"], hdri["light_max"])
@@ -160,7 +168,7 @@ for _ in range(int(num_imgs/imgs_per_object)):
 
 
         # Render and save the image
-        img_path = os.path.join(config["Paths"]["output_path"], "imgs", str(img_name) + ".png")
+        img_path = os.path.join(config["Output"]["output_path"], "imgs", str(img_name) + ".png")
         render.render(img_path)
 
         # Add the generated image to the index

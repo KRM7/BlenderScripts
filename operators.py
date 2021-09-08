@@ -1,6 +1,7 @@
 """Blender 2.91
 
-Functions for modifying objects and meshes.
+Functions for modifying objects and meshes in Blender.
+Used for modeling the objects.
 """
 
 import bpy
@@ -72,7 +73,7 @@ def roundEdges(object : bpy.types.Mesh,
                radius : float = 1.0,
                segments : int = 5,
                clamp_overlap : bool = True) -> None:
-    """Round the edges of an object.
+    """Round the given edges of an object.
 
     Params:
         object: The target mesh.

@@ -3,9 +3,9 @@
 Haircomb class to create the object in blender.
 """
 
-project_path = "S:\\source\\image-generator"
-import sys
-sys.path.append(project_path)
+#project_path = "S:\\source\\image-generator"
+#import sys
+#sys.path.append(project_path)
 
 import bpy, mathutils
 
@@ -396,6 +396,7 @@ class Haircomb:
 
 
 
+# DEBUG (this never runs while generating the images)
 def main():
     
     bpy.ops.object.select_all(action = "SELECT")
@@ -415,7 +416,7 @@ def main():
 
     shaders.applyPlastic(mat = hc.getMaterial(),
                          color = (0.0, 0.0, 0.0, 1.0),
-                         surface = "Matte",
+                         surface = "matte",
                          randomize = True,
                          textures_path = "S:\\source\\image-generator\\textures",
                          tex_defect = "contamination",

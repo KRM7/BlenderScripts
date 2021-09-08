@@ -1,6 +1,6 @@
 """Blender 2.91
 
-Functions for rendering images.
+Functions used for rendering the scene.
 """
 
 import bpy
@@ -11,8 +11,8 @@ def setImageSettings(res_x : int = 1920,
     """Sets the properties of the rendered image.
 
     Params:
-        res_x: The horizontal resolution of the output image.
-        res_y: The vertical resolution of the output image.
+        res_x: The horizontal resolution of the output image (px).
+        res_y: The vertical resolution of the output image (px).
         color: True for color image, False for black-white image.
     Returns:
         None
@@ -33,14 +33,14 @@ def setupCycles(samples : int = 64,
                 tile_size : int = 128,
                 use_adaptive_sampling : bool = True,
                 denoising : bool = False) -> None:
-    """Sets up the all the settings the cycles render engine. (for the active scene only)
+    """Sets up the all the settings of the cycles render engine (for the active scene only).
 
     Params:
         samples: The number of samples rendered for each pixel.
-        bounces: The maximum number of bounces for light particles.
-        tile_size: The tile size used while rendering (px).
-        use_adaptive_sampling: Reduces the number of samples for less noise pixels.
-        denoising: Use denoiser if True.
+        bounces: The maximum number of bounces for the light particles.
+        tile_size: The tile size used while rendering (in px).
+        use_adaptive_sampling: Reduces the number of samples for less noise.
+        denoising: Use a denoiser while rendering if True.
     Returns:
         None
     """
@@ -77,7 +77,7 @@ def setupCycles(samples : int = 64,
     scene.render.tile_y = tile_size
     scene.cycles.debug_use_spatial_splits = False
 
-    scene.cycles.volume_max_steps = 16
+    scene.cycles.volume_max_steps = 16  # Unused
     scene.cycles.volume_step_rate = 1.0
 
     scene.cycles.use_adaptive_sampling = use_adaptive_sampling  # For faster render
@@ -97,12 +97,10 @@ def setupCycles(samples : int = 64,
 
 
 def render(filepath : str) -> None:
-    """Renders the image and saves it to the given filepath.
+    """Renders the scene and saves the image to the given filepath.
 
     Params:
-        filepath: The path to save the rendered image to.
-    Return:
-        None.
+        filepath: The path to save the rendered image to (with the name of the image).
     """
 
     bpy.context.scene.render.filepath = filepath
@@ -122,6 +120,25 @@ def setupEevee(samples : int = 64) -> None:
     # Use the Eevee render engine
     scene = bpy.context.scene
     scene.render.engine  = "BLENDER_EEVEE"
+
+    # Device settings (use GPU when possible)
+    prefs = bpy.context.preferences.addons["cycles"].preferences
+    cuda, opencl = prefs.get_devices()
+
+    if cuda:
+        prefs.compute_device_type = "CUDA"
+        scene.cycles.device = "GPU"
+    elif opencl:
+        prefs.compute_device_type = "OPENCL"
+        scene.cycles.device = "GPU"
+    else:
+        prefs.compute_device_type = "NONE"
+        scene.cylces.dive = "CPU"
+    
+    scene.cycles.feature_set = "SUPPORTED"  # or EXPERIMENTAL
+
+    for device in prefs.devices:
+        device["use"] = 1
 
     # Render settings
     scene.eevee.taa_render_samples = samples

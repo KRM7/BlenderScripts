@@ -11,14 +11,14 @@ from typing import List
 
 
 def removeCameras() -> None:
-    """Removes every camera."""
+    """Removes every camera from the scene."""
 
     for cam in bpy.data.cameras:
         bpy.data.cameras.remove(cam)
 
 
 def removeLights() -> None:
-    """Removes every light."""
+    """Removes every light source from the scene."""
 
     for light in bpy.data.lights:
         bpy.data.lights.remove(light)
@@ -39,14 +39,14 @@ def removeMeshes() -> None:
 
 
 def randomExtendBoundingBox(bounding_box : List[float], max_x : float, max_y : float) -> List[float]:
-    """Randomly extends a bounding box coordinates in the x and y direction.
+    """Randomly extends a bounding box in the x and y directions.
 
     Params:
-        bounding_box: The bounding box to extend.
-        max_x: The maximum distance to extend the bounding box by along the x axis.
-        max_y: The maximum distance to extend the bounding box by along the y axis.
+        bounding_box: The coordinates of the bounding box to extend.
+        max_x: The maximum distance to extend the bounding box by along the x axis (on each side).
+        max_y: The maximum distance to extend the bounding box by along the y axis (on each side).
     Returns:
-        The extended bounding box.
+        The coordinates of the extended bounding box.
     """
 
     x_p = random.uniform(0.0, max_x)

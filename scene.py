@@ -1,6 +1,6 @@
 """Blender 2.91
 
-Functions to set up the scene for rendering (cameras and lights).
+Functions to set up the scene for rendering (cameras and lights including the HDRIs).
 """
 
 import bpy, mathutils
@@ -22,21 +22,21 @@ ground_plane_size = 20000.0
 
 
 def removeCameras() -> None:
-    """Removes every camera."""
+    """Removes every camera from the scene."""
 
     for cam in bpy.data.cameras:
         bpy.data.cameras.remove(cam)
 
 
 def removeLights() -> None:
-    """Removes every light."""
+    """Removes every light source from the scene."""
 
     for light in bpy.data.lights:
         bpy.data.lights.remove(light)
 
 
 def pointCameraTo(cam : bpy.types.Camera, target : mathutils.Vector) -> None:
-    """Points the camera towards the given point.
+    """Points the camera cam towards the given target point.
     
     Param:
         cam: The camera to rotate.
