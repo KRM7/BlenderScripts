@@ -1,6 +1,5 @@
 """Class for generating random defect combinations based
 on the types of defects enabled.
-
 """
 
 import math
