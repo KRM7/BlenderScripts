@@ -77,7 +77,7 @@ defect_gen = defects.Defects(config["Object"]["enable_missing_teeth"] == "True",
 
 # Index file
 # Either create a new index or if it already exists, append new images
-img_name, img_cntr = 0, 0   # img_name is not the same as the img_cntr if there are already images in the output directory and we are adding more
+img_name, img_cntr = 1, 0
 index_filepath = os.path.join(config["Output"]["output_path"], "index.csv")
 
 append_index = os.path.isfile(index_filepath) and config["Output"]["overwrite"] != "True"
@@ -172,7 +172,7 @@ for _ in range(int(num_imgs/imgs_per_object)):
         render.render(img_path)
 
         # Add the generated image to the index
-        index_writer.writerow([img_name, str(int(defect_gen.missing_teeth)), str(int(defect_gen.bent_teeth)), str(int(defect_gen.warping)),
+        index_writer.writerow([str(img_name) + ".png", str(int(defect_gen.missing_teeth)), str(int(defect_gen.bent_teeth)), str(int(defect_gen.warping)),
                                str(int(defect_gen.ejector_marks != 0)), str(int(defect_gen.gloss)), str(int(defect_gen.discoloration)),
                                str(int(defect_gen.contamination)), str(int(defect_gen.cloudy)), str(int(defect_gen.splay))])
 
