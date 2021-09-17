@@ -88,10 +88,10 @@ def setupCycles(samples : int = 64,
         scene.cycles.use_denoising = True
         if cuda:
             scene.cycles.denoiser = "OPTIX"
-            scene.denoising_optix_input_passes = "RGB_ALBEDO_NORMAL"
+            scene.cycles.denoising_optix_input_passes = "RGB_ALBEDO_NORMAL"
         else:
             scene.cycles.denoiser = "OPENIMAGEDENOISE"
-            scene.denoising_openimagedenoise_input_passes = "RGB_ALBEDO_NORMAL"
+            scene.cycles.denoising_openimagedenoise_input_passes = "RGB_ALBEDO_NORMAL"
     else:
         scene.cycles.use_denoising = False
 
