@@ -77,22 +77,12 @@ defect_gen = defects.Defects(config["Object"]["enable_missing_teeth"] == "True",
 
 # Index file
 # Either create a new index or if it already exists, append new images
-img_name, img_cntr = 1, 0
+img_name, img_cntr = 4683, 0
 index_filepath = os.path.join(config["Output"]["output_path"], "index.csv")
 
-append_index = os.path.isfile(index_filepath) and config["Output"]["overwrite"] != "True"
-if append_index:
-    index_file = open(index_filepath, "r")
-    img_name = sum(1 for line in index_file)
-    index_file.close()
-
-if append_index:
-    index_file = open(index_filepath, "a+", newline = "")
-    index_writer = csv.writer(index_file)
-else:
-    index_file = open(index_filepath, "w", newline = "")
-    index_writer = csv.writer(index_file)
-    index_writer.writerow(["Filenames", "missing_teeth", "bent_teeth", "warped", "ejector_marks", "low_gloss", "discoloration", "contamination", "cloudy", "splay"])
+index_file = open(index_filepath, "w", newline = "")
+index_writer = csv.writer(index_file)
+index_writer.writerow(["Filenames", "missing_teeth", "bent_teeth", "warped", "ejector_marks", "low_gloss", "discoloration", "contamination", "cloudy", "splay"])
 
 # The overall number of images to generate, and the number of images to generate of 1 object before creating a new object model.
 num_imgs = int(config["Output"]["num_imgs"])

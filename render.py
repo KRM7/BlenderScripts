@@ -65,8 +65,10 @@ def setupCycles(samples : int = 64,
     
     scene.cycles.feature_set = "SUPPORTED"  # or EXPERIMENTAL
 
-    for device in prefs.devices:
-        device["use"] = 1
+    # Uncomment this to use all available devices (including the CPU)
+    # Note: Using both the GPU and CPU can be slower than only using the GPU
+    #for device in prefs.devices:
+    #    device["use"] = 1
 
     # Render settings
     scene.cycles.progressive = "PATH"   # integrator (or BRANCHED_PATH)
@@ -88,10 +90,10 @@ def setupCycles(samples : int = 64,
         scene.cycles.use_denoising = True
         if cuda:
             scene.cycles.denoiser = "OPTIX"
-            scene.denoising_optix_input_passes = "RGB_ALBEDO_NORMAL"
+            scene.cycles.denoising_optix_input_passes = "RGB_ALBEDO_NORMAL"
         else:
             scene.cycles.denoiser = "OPENIMAGEDENOISE"
-            scene.denoising_openimagedenoise_input_passes = "RGB_ALBEDO_NORMAL"
+            scene.cycles.denoising_openimagedenoise_input_passes = "RGB_ALBEDO_NORMAL"
     else:
         scene.cycles.use_denoising = False
 
@@ -137,8 +139,10 @@ def setupEevee(samples : int = 64) -> None:
     
     scene.cycles.feature_set = "SUPPORTED"  # or EXPERIMENTAL
 
-    for device in prefs.devices:
-        device["use"] = 1
+    # Uncomment this to use all available devices (including the CPU)
+    # Note: Using both the GPU and CPU can be slower than only using the GPU
+    #for device in prefs.devices:
+    #    device["use"] = 1
 
     # Render settings
     scene.eevee.taa_render_samples = samples
