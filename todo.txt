@@ -1,12 +1,2 @@
-
-
-
 unimportant:
-
-	defects.py
-
-	the shader scales should be relative to the haircomb size
-
-	defects:
-		(non-fill)
-		(flash)
+	-defects: -(flash)
